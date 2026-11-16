@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MM Launcher: for box sellers</title>
+<style>
+:root{color-scheme:light dark;--bg:#0e1116;--card:#1a1f27;--text:#f2f5fa;--muted:#9aa6b8;--accent:#4c8dff}
+*{box-sizing:border-box}body{margin:0;font:17px/1.6 system-ui,sans-serif;background:var(--bg);color:var(--text)}
+main{max-width:46rem;margin:0 auto;padding:2rem 1rem 4rem}h1{font-size:1.8rem}h2{margin-top:2rem}
+p,li{color:var(--muted)}code{background:var(--card);padding:.1rem .4rem;border-radius:6px;color:var(--text);word-break:break-all}
+pre{background:var(--card);padding:1rem;border-radius:12px;overflow:auto;color:var(--text)}a{color:var(--accent)}
+nav button{background:var(--card);color:var(--text);border:0;padding:.5rem 1rem;border-radius:10px;margin-right:.4rem;cursor:pointer}
+nav button[aria-pressed=true]{outline:2px solid var(--accent)}[data-l]{display:none}[data-l].on{display:block}
+</style></head><body><main>
+<nav><button data-set="en">English</button><button data-set="ru">Русский</button><button data-set="tk">Türkmençe</button></nav>
+<h1>MM Launcher: for box sellers</h1>
+
+<section data-l="en">
+<h2>Before sale: checklist per box</h2><ol>
+<li>Install the APK (see below) and open MM Launcher once. The setup wizard starts.</li>
+<li>Choose the language and a wallpaper for the customer; answer "No" to auto-update if you prefer.</li>
+<li>Make it the home screen: press Home, choose MM Launcher, <b>Always</b>. Check that Home returns to it.</li>
+<li>Remove clutter: long-press (hold OK) on unwanted apps, then <b>Hide</b>. Add the customer's main apps to <b>Favorites</b>.</li>
+<li>Optional: <i>Launcher settings → Autostart</i> to open one app (for example the IPTV app) after power-on.</li>
+<li>Test: Wi-Fi button, <i>About device</i>, <i>Developer mode</i> button, HDMI/USB card if the box has them. Note any button that shows "can't open this screen" and tell the developer the box model and Android version: the settings-compatibility list can be updated without a new APK.</li></ol>
+<h2>Install on many boxes at once</h2>
+<p>With ADB debugging enabled on the boxes (same network), from a computer:</p>
+<pre>scripts/install-on-boxes.sh mm-launcher.apk 192.168.1.50 192.168.1.51</pre>
+<p>Use <code>--no-home</code> to only install. Setting the home screen automatically works only on some versions; the script tells you which boxes need the manual "Always" step.</p>
+<h2>Installing as a system app</h2>
+<p>If you build or modify the firmware, the APK can be placed in <code>/system/priv-app/</code> (or <code>/system/app/</code>) so it survives a factory reset. MM Launcher does not need privileged permissions. This path is not tested by the developer, so try it on one box first. Note that cleaning other apps' cache automatically needs system permissions the launcher does not have; the launcher opens the system Storage/Apps screens for that.</p>
+<p><a href="index.html">Back to download page</a> · <a href="privacy.html">Privacy policy</a></p>
+</section>
+
+<section data-l="ru">
+<h2>Перед продажей: чек-лист на каждый бокс</h2><ol>
+<li>Установите APK (ниже) и один раз откройте MM Launcher: запустится мастер настройки.</li>
+<li>Выберите язык и обои для покупателя; на вопрос об автообновлении ответьте «Нет», если так удобнее.</li>
+<li>Сделайте лаунчер главным экраном: Home → MM Launcher → <b>Всегда</b>. Проверьте, что Home возвращает на него.</li>
+<li>Уберите лишнее: удерживайте OK на ненужном приложении → <b>Скрыть</b>. Основные приложения покупателя добавьте в <b>Избранное</b>.</li>
+<li>По желанию: <i>Настройки лаунчера → Автозапуск</i>, чтобы после включения открывалось одно приложение (например IPTV).</li>
+<li>Проверьте: кнопку Wi-Fi, «О устройстве», «Режим разработчика», карточки HDMI/USB, если они есть. Если какая-то кнопка пишет «Не удалось открыть экран», сообщите разработчику модель бокса и версию Android: список совместимости настроек можно обновить без нового APK.</li></ol>
+<h2>Установка на много боксов сразу</h2>
+<p>При включённой отладке ADB на боксах (одна сеть), с компьютера:</p>
+<pre>scripts/install-on-boxes.sh mm-launcher.apk 192.168.1.50 192.168.1.51</pre>
+<p>Параметр <code>--no-home</code> только устанавливает. Автоматически назначить главный экран получается не на всех версиях; скрипт сообщит, на каких боксах нужен ручной шаг «Всегда».</p>
+<h2>Установка как системного приложения</h2>
+<p>Если вы собираете или правите прошивку, APK можно положить в <code>/system/priv-app/</code> (или <code>/system/app/</code>), чтобы он пережил сброс до заводских настроек. Особые привилегии MM Launcher не нужны. Разработчик этот путь не проверял, сначала попробуйте на одном боксе. Автоматическая очистка кэша чужих приложений требует системных прав, которых у лаунчера нет: он открывает системные экраны «Хранилище» и «Приложения».</p>
+<p><a href="index.html">К странице загрузки</a> · <a href="privacy.html">Политика конфиденциальности</a></p>
+</section>
+
+<section data-l="tk">
+<h2>Satmazdan öň: her box üçin barlag sanawy</h2><ol>
+<li>APK-ny guruň (aşakda) we MM Launcher-i bir gezek açyň: sazlama ussady başlanýar.</li>
+<li>Alyjy üçin dil we fon saýlaň; awto täzelenmä «Ýok» diýip bilersiňiz.</li>
+<li>Baş ekran ediň: Home → MM Launcher → <b>Hemişe</b>. Home düwmesiniň oňa gaýdýandygyny barlaň.</li>
+<li>Artykmaçlygy aýyryň: gerek däl programmada OK basyp duruň → <b>Gizle</b>. Alyjynyň esasy programmalaryny <b>Saýlananlara</b> goşuň.</li>
+<li>Islege görä: <i>Lançer sazlamalary → Awtomatik başlat</i>: açylandan soň bir programma (mysal üçin IPTV) açylar.</li>
+<li>Barlaň: Wi-Fi, «Enjam barada», «Işläp düzüji» düwmeleri, bar bolsa HDMI/USB kartalary. Haýsydyr düwme «Ekran açylmady» diýse, box modelini we Android wersiýasyny işläp düzüjä habar beriň: sazlama sanawy täze APK-syz täzelenip bilner.</li></ol>
+<h2>Birnäçe boxy bir wagtda gurmak</h2>
+<pre>scripts/install-on-boxes.sh mm-launcher.apk 192.168.1.50 192.168.1.51</pre>
+<p><code>--no-home</code> diňe gurýar. Baş ekrany awtomatik bellemek ähli wersiýalarda işlemeýär; skript haýsy boxlarda «Hemişe» ädimiň elde gerekdigini aýdar.</p>
+<h2>Ulgam programmasy hökmünde gurmak</h2>
+<p>Firmware özüňiz ýasasaňyz, APK-ny <code>/system/priv-app/</code> bukjasyna goýup bolýar. Işläp düzüji bu ýoly barlamady, ilki bir boxda synanyşyň.</p>
+<p><a href="index.html">Ýükleme sahypasyna</a> · <a href="privacy.html">Gizlinlik syýasaty</a></p>
+</section>
+
+<script>
+(function(){
+  var langs=['en','ru','tk'], saved=null;
+  try{saved=localStorage.getItem('lang')}catch(e){}
+  var nav=(navigator.language||'en').slice(0,2);
+  var cur=langs.indexOf(saved)>=0?saved:(langs.indexOf(nav)>=0?nav:'en');
+  function show(l){
+    document.querySelectorAll('[data-l]').forEach(function(e){e.classList.toggle('on',e.dataset.l===l)});
+    document.querySelectorAll('nav button').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.set===l)});
+    document.documentElement.lang=l;try{localStorage.setItem('lang',l)}catch(e){}
+  }
+  document.querySelectorAll('nav button').forEach(function(b){b.onclick=function(){show(b.dataset.set)}});
+  show(cur);
+})();
+</script>
+</main></body></html>

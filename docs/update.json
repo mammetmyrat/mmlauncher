@@ -1,0 +1,15 @@
+{
+  "versionCode": 1,
+  "versionName": "0.1.0",
+  "apkUrl": "https://mammetmyrat.github.io/mmlauncher/mm-launcher-0.1.0.apk",
+  "sha256": "",
+  "notes": {
+    "en": "First release.",
+    "ru": "Первый релиз.",
+    "tk": "Ilkinji çykarylyş."
+  },
+  "chains": {
+    "version": 1,
+    "url": "https://mammetmyrat.github.io/mmlauncher/settings_chains.json"
+  }
+}

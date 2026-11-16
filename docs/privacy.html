@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MM Launcher: Privacy</title>
+<style>body{font:17px/1.6 system-ui,sans-serif;max-width:46rem;margin:2rem auto;padding:0 1rem;color:#1b1f27}h1,h2{line-height:1.25}a{color:#2563eb}</style></head>
+<body>
+<h1>MM Launcher: Privacy Policy</h1>
+<p><b>Short version:</b> MM Launcher does not collect, store on a server or share any personal data. It has no accounts, no ads and no analytics.</p>
+<h2>What stays on your device</h2>
+<p>Your favourites, hidden apps, language, wallpaper and autostart choice are saved only on your device. The PIN/parental features are not part of this version.</p>
+<h2>Network use</h2>
+<p>The only network request is the optional update check. It is OFF until you turn it on in the setup wizard or in Launcher settings (the "Check now" button is also your explicit action). It downloads one small file, <code>update.json</code>, and, when a newer settings-compatibility file exists, <code>settings_chains.json</code>. The host serving these files (GitHub Pages) can see the IP address of your connection, as with any website. MM Launcher sends no identifiers; the request carries only the app name and version in the User-Agent.</p>
+<p>A new APK is downloaded only after you press Install, over HTTPS, and is checked against a SHA-256 fingerprint before the system installer opens.</p>
+<h2>Permissions</h2>
+<ul>
+<li><b>Internet</b>: update check only.</li>
+<li><b>Request install packages</b>: to open the installer after you confirm an update.</li>
+<li><b>Read external storage</b>: the built-in file manager and "set as wallpaper".</li>
+<li><b>Kill background processes</b>: the "free memory" button.</li>
+<li><b>Request delete packages</b>: the "Uninstall" menu item (the system asks you to confirm).</li>
+<li>The launcher can see the list of installed apps in order to show them. This list never leaves the device.</li>
+</ul>
+<h2>Contact</h2>
+<p>Questions: open an issue in the project repository.</p>
+</body></html>

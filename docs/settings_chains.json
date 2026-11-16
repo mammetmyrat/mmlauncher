@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "chains": {
+    "wifi": [
+      {"action": "android.settings.WIFI_SETTINGS"},
+      {"pkg": "com.android.tv.settings", "cls": "com.android.tv.settings.connectivity.NetworkActivity"},
+      {"pkg": "com.android.settings", "cls": "com.android.settings.wifi.WifiSettings"},
+      {"pkg": "com.android.settings", "cls": "com.android.settings.Settings$WifiSettingsActivity"},
+      {"action": "android.settings.WIRELESS_SETTINGS"}
+    ],
+    "network": [
+      {"action": "android.settings.WIRELESS_SETTINGS"},
+      {"pkg": "com.android.tv.settings", "cls": "com.android.tv.settings.connectivity.NetworkActivity"},
+      {"pkg": "com.android.settings", "cls": "com.android.settings.Settings$NetworkDashboardActivity"},
+      {"action": "android.settings.WIFI_SETTINGS"}
+    ],
+    "about": [
+      {"action": "android.settings.DEVICE_INFO_SETTINGS"},
+      {"pkg": "com.android.tv.settings", "cls": "com.android.tv.settings.about.AboutActivity"},
+      {"pkg": "com.android.tv.settings", "cls": "com.android.tv.settings.device.about.AboutActivity"},
+      {"pkg": "com.android.settings", "cls": "com.android.settings.Settings$DeviceInfoSettingsActivity"},
+      {"pkg": "com.android.settings", "cls": "com.android.settings.DeviceInfoSettings"}
+    ],
+    "developer": [
+      {"action": "android.settings.APPLICATION_DEVELOPMENT_SETTINGS"},
+      {"pkg": "com.android.settings", "cls": "com.android.settings.Settings$DevelopmentSettingsDashboardActivity"},
+      {"pkg": "com.android.settings", "cls": "com.android.settings.Settings$DevelopmentSettingsActivity"},
+      {"pkg": "com.android.settings", "cls": "com.android.settings.DevelopmentSettings"},
+      {"pkg": "com.android.tv.settings", "cls": "com.android.tv.settings.system.development.DevelopmentActivity"}
+    ],
+    "all": [
+      {"action": "android.settings.SETTINGS"},
+      {"pkg": "com.android.tv.settings", "cls": "com.android.tv.settings.MainSettings"},
+      {"pkg": "com.android.settings", "cls": "com.android.settings.Settings"}
+    ],
+    "datetime": [
+      {"action": "android.settings.DATE_SETTINGS"},
+      {"pkg": "com.android.tv.settings", "cls": "com.android.tv.settings.system.DateTimeActivity"},
+      {"pkg": "com.android.settings", "cls": "com.android.settings.Settings$DateTimeSettingsActivity"},
+      {"action": "android.settings.SETTINGS"}
+    ],
+    "language": [
+      {"action": "android.settings.LOCALE_SETTINGS"},
+      {"pkg": "com.android.tv.settings", "cls": "com.android.tv.settings.system.LanguageActivity"},
+      {"pkg": "com.android.settings", "cls": "com.android.settings.Settings$LocalePickerActivity"},
+      {"action": "android.settings.INPUT_METHOD_SETTINGS"}
+    ],
+    "storage": [
+      {"action": "android.settings.INTERNAL_STORAGE_SETTINGS"},
+      {"action": "android.settings.MEMORY_CARD_SETTINGS"},
+      {"pkg": "com.android.tv.settings", "cls": "com.android.tv.settings.device.storage.StorageResetActivity"},
+      {"pkg": "com.android.settings", "cls": "com.android.settings.Settings$StorageDashboardActivity"},
+      {"action": "android.settings.SETTINGS"}
+    ],
+    "apps": [
+      {"action": "android.settings.MANAGE_ALL_APPLICATIONS_SETTINGS"},
+      {"action": "android.settings.APPLICATION_SETTINGS"},
+      {"pkg": "com.android.tv.settings", "cls": "com.android.tv.settings.device.apps.AppsActivity"},
+      {"pkg": "com.android.settings", "cls": "com.android.settings.applications.ManageApplications"},
+      {"action": "android.settings.SETTINGS"}
+    ],
+    "display_sound": [
+      {"action": "android.settings.DISPLAY_SETTINGS"},
+      {"pkg": "com.android.tv.settings", "cls": "com.android.tv.settings.device.display.DisplayActivity"},
+      {"action": "android.settings.SOUND_SETTINGS"},
+      {"pkg": "com.android.settings", "cls": "com.android.settings.Settings$DisplaySettingsActivity"}
+    ]
+  }
+}

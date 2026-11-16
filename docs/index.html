@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MM Launcher for Android TV</title>
+<style>
+:root{color-scheme:light dark;--bg:#0e1116;--card:#1a1f27;--text:#f2f5fa;--muted:#9aa6b8;--accent:#4c8dff}
+*{box-sizing:border-box}body{margin:0;font:17px/1.6 system-ui,sans-serif;background:var(--bg);color:var(--text)}
+main{max-width:46rem;margin:0 auto;padding:2rem 1rem 4rem}h1{font-size:2rem;margin:.2rem 0}h2{margin-top:2rem}
+p,li{color:var(--muted)}code{background:var(--card);padding:.1rem .4rem;border-radius:6px;color:var(--text);word-break:break-all}
+pre{background:var(--card);padding:1rem;border-radius:12px;overflow:auto;color:var(--text)}
+.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;padding:.8rem 1.4rem;border-radius:12px;font-weight:600}
+nav button{background:var(--card);color:var(--text);border:0;padding:.5rem 1rem;border-radius:10px;margin-right:.4rem;cursor:pointer}
+nav button[aria-pressed=true]{outline:2px solid var(--accent)}a{color:var(--accent)}
+[data-l]{display:none}[data-l].on{display:block}
+</style></head><body><main>
+<nav><button data-set="en">English</button><button data-set="ru">Русский</button><button data-set="tk">Türkmençe</button></nav>
+<h1>MM Launcher</h1>
+
+<section data-l="en"><p>A free, light home screen for Android TV and Android boxes: all apps, favourites, quick access to hidden system settings (including Developer mode), HDMI/USB, a simple file manager, and Russian / Turkmen / English interface.</p>
+<p><a class="btn" href="mm-launcher.apk">Download APK</a></p>
+<h2>Install</h2><ol>
+<li>Copy the APK to a USB stick or download it on the box, then open it. Allow "install from unknown sources" if asked.</li>
+<li>Press <b>Home</b> on the remote, choose <b>MM Launcher</b> and <b>Always</b>.</li>
+<li>If the box does not ask, open the launcher, go to <i>Launcher settings → Setup guide</i>.</li></ol>
+<h2>Google TV / Android TV with a protected home screen</h2>
+<p>Some devices do not let you replace the home screen from the screen. You then need a computer. Enable <i>Developer options</i> (About → press <i>Build number</i> 7 times), turn on USB or network debugging, then:</p>
+<pre>adb connect TV_IP_ADDRESS:5555
+adb install mm-launcher.apk
+adb shell cmd package set-home-activity com.mmlauncher.tv/.MainActivity</pre>
+<p>In the developer's Google TV test this command printed "success" but did NOT change the home screen. If it has no effect on your box, you can instead disable the original launcher (undo with <code>pm enable</code>): <code>adb shell pm disable-user --user 0 com.google.android.tvlauncher</code> (on Google TV the package is often <code>com.google.android.apps.tv.launcherx</code>). Results differ by device; test on one box first.</p>
+<h2>Sellers</h2><p>You can install the APK before sale. Choose the language and wallpaper in the wizard so the customer starts with a ready screen.</p>
+<p><a href="sellers.html">Full seller guide</a> · <a href="privacy.html">Privacy policy</a></p></section>
+
+<section data-l="ru"><p>Бесплатный лёгкий главный экран для Android TV и Android-боксов: все приложения, избранное, быстрый доступ к скрытым системным настройкам (включая режим разработчика), HDMI/USB, простой файловый менеджер, интерфейс на русском, туркменском и английском.</p>
+<p><a class="btn" href="mm-launcher.apk">Скачать APK</a></p>
+<h2>Установка</h2><ol>
+<li>Скопируйте APK на флешку или скачайте на бокс и откройте. Если спросят, разрешите установку из неизвестных источников.</li>
+<li>Нажмите <b>Home</b> на пульте, выберите <b>MM Launcher</b> и <b>Всегда</b>.</li>
+<li>Если бокс ничего не спросил, откройте лаунчер: <i>Настройки лаунчера → Мастер настройки</i>.</li></ol>
+<h2>Google TV / Android TV с защищённым главным экраном</h2>
+<p>На некоторых устройствах заменить главный экран с самого экрана нельзя, нужен компьютер. Включите <i>Режим разработчика</i> (О устройстве → 7 раз нажать на <i>Номер сборки</i>), включите отладку по USB или сети, затем:</p>
+<pre>adb connect IP_АДРЕС_ТВ:5555
+adb install mm-launcher.apk
+adb shell cmd package set-home-activity com.mmlauncher.tv/.MainActivity</pre>
+<p>В тесте разработчика на Google TV эта команда писала «success», но главный экран НЕ менялся. Если у вас она не действует, можно отключить штатный лаунчер (вернуть: <code>pm enable</code>): <code>adb shell pm disable-user --user 0 com.google.android.tvlauncher</code> (на Google TV пакет часто <code>com.google.android.apps.tv.launcherx</code>). Результат зависит от устройства, сначала проверьте на одном боксе.</p>
+<h2>Продавцам</h2><p>APK можно установить до продажи. Выберите язык и обои в мастере, чтобы покупатель получил готовый экран.</p>
+<p><a href="sellers.html">Полная инструкция для продавцов</a> · <a href="privacy.html">Политика конфиденциальности</a></p></section>
+
+<section data-l="tk"><p>Android TV we Android boxlar üçin mugt, ýeňil baş ekran: ähli programmalar, saýlananlar, ulgam sazlamalaryna çalt ýol (işläp düzüji rejimi ýaly), HDMI/USB, ýönekeý faýl dolandyryjysy, rus, türkmen we iňlis dilleri.</p>
+<p><a class="btn" href="mm-launcher.apk">APK ýükle</a></p>
+<h2>Gurnama</h2><ol>
+<li>APK-ny fleşka göçüriň ýa-da boxda ýükläp açyň. Soralsa, näbelli çeşmelerden gurmaga rugsat beriň.</li>
+<li>Pultda <b>Home</b> düwmesine basyp, <b>MM Launcher</b> we <b>Hemişe</b> saýlaň.</li>
+<li>Box hiç zat sorasa-da, lançeri açyň: <i>Lançer sazlamalary → Sazlama ussady</i>.</li></ol>
+<h2>Google TV / goralan baş ekranly Android TV</h2>
+<p>Käbir enjamlarda baş ekrany ekrandan çalyşyp bolmaýar, kompýuter gerek. <i>Işläp düzüji rejimini</i> açyň (Enjam barada → <i>Build number</i> 7 gezek basyň), USB ýa-da tor aýyklamasyny açyp, soňra:</p>
+<pre>adb connect TV_IP_ADRESI:5555
+adb install mm-launcher.apk
+adb shell cmd package set-home-activity com.mmlauncher.tv/.MainActivity</pre>
+<p>Işläp düzüjiniň Google TV synagynda bu buýruk «success» ýazdy, ýöne baş ekran ÜÝTGEMEDI. Size täsir etmese, adaty lançeri öçürip bolýar (yzyna <code>pm enable</code>): <code>adb shell pm disable-user --user 0 com.google.android.tvlauncher</code>. Netije enjama baglydyr, ilki bir boxda barlaň.</p>
+<p><a href="sellers.html">Satyjylar üçin doly gollanma</a> · <a href="privacy.html">Gizlinlik syýasaty</a></p></section>
+
+<script>
+(function(){
+  var langs=['en','ru','tk'], saved=null;
+  try{saved=localStorage.getItem('lang')}catch(e){}
+  var nav=(navigator.language||'en').slice(0,2);
+  var cur=langs.indexOf(saved)>=0?saved:(langs.indexOf(nav)>=0?nav:'en');
+  function show(l){
+    document.querySelectorAll('[data-l]').forEach(function(e){e.classList.toggle('on',e.dataset.l===l)});
+    document.querySelectorAll('nav button').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.set===l)});
+    document.documentElement.lang=l;try{localStorage.setItem('lang',l)}catch(e){}
+  }
+  document.querySelectorAll('nav button').forEach(function(b){b.onclick=function(){show(b.dataset.set)}});
+  show(cur);
+})();
+</script>
+</main></body></html>
