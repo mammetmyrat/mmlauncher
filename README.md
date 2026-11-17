@@ -10,6 +10,7 @@ Developer mode), HDMI inputs and USB, built-in file manager, wallpapers, RU / TK
 check, remote/mouse/air-mouse support.
 
 ## Docs
+- `ARCHITECTURE.md`: layers (domain / data / presentation), MVI, how to add a screen
 - `RELEASE.md`: signing and building a release
 - `scripts/release.sh`: build, sign-check, SHA-256, update `docs/update.json`
 - `scripts/install-on-boxes.sh`: seller tool to install on many boxes over ADB

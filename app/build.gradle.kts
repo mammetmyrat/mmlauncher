@@ -56,4 +56,8 @@ dependencies {
     // Minimal on purpose: low RAM / small APK on weak boxes.
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
+
+    // JVM unit tests only (not part of the APK).
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.json:json:20231013") // android.jar org.json is a stub on the JVM
 }

@@ -33,6 +33,7 @@
     </queries>
 
     <application
+        android:name=".MMApp"
         android:allowBackup="true"
         android:requestLegacyExternalStorage="true"
         android:icon="@mipmap/ic_launcher"
@@ -42,7 +43,7 @@
         android:theme="@style/Theme.MM">
 
         <activity
-            android:name=".MainActivity"
+            android:name=".presentation.home.MainActivity"
             android:exported="true"
             android:launchMode="singleTask"
             android:stateNotNeeded="true"
@@ -58,7 +59,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".FileManagerActivity"
+            android:name=".presentation.files.FileManagerActivity"
             android:exported="false"
             android:screenOrientation="landscape" />
 
@@ -73,27 +74,27 @@
         </provider>
 
         <activity
-            android:name=".WizardActivity"
+            android:name=".presentation.wizard.WizardActivity"
             android:exported="false"
             android:screenOrientation="landscape" />
 
         <activity
-            android:name=".DeveloperActivity"
+            android:name=".presentation.developer.DeveloperActivity"
             android:exported="false"
             android:screenOrientation="landscape" />
 
         <activity
-            android:name=".RamActivity"
+            android:name=".presentation.usage.RamActivity"
             android:exported="false"
             android:screenOrientation="landscape" />
 
         <activity
-            android:name=".StorageActivity"
+            android:name=".presentation.usage.StorageActivity"
             android:exported="false"
             android:screenOrientation="landscape" />
 
         <activity
-            android:name=".SettingsActivity"
+            android:name=".presentation.settings.SettingsActivity"
             android:exported="false"
             android:screenOrientation="landscape" />
     </application>
