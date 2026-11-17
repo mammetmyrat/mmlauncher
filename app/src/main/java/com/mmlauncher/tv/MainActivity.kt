@@ -56,7 +56,6 @@ class MainActivity : Activity() {
     private lateinit var ramText: TextView
     private lateinit var ramBar: ProgressBar
     private val ui = Handler(Looper.getMainLooper())
-    private var boosting = false
     private var updateCheckRunning = false
     private var pendingAutostart = false
     private var countdown: AlertDialog? = null
@@ -98,7 +97,7 @@ class MainActivity : Activity() {
 
         ramText = findViewById(R.id.ram_text)
         ramBar = findViewById(R.id.ram_bar)
-        findViewById<View>(R.id.ram_btn).setOnClickListener { boost() }
+        findViewById<View>(R.id.ram_btn).setOnClickListener { startActivity(Intent(this, RamActivity::class.java)) }
 
         // First run: short wizard (language, wallpaper, updates, default launcher).
         val firstRun = !prefs.wizardDone && savedInstanceState == null
@@ -112,14 +111,10 @@ class MainActivity : Activity() {
             Mouse.enableWheel(this)
             adapter = QuickAdapter(
                 listOf(
-                    QuickItem("wifi", getString(R.string.q_wifi)),
-                    QuickItem("network", getString(R.string.q_network)),
-                    QuickItem("about", getString(R.string.q_about)),
                     QuickItem("developer", getString(R.string.q_developer)),
-                    QuickItem("all", getString(R.string.q_all)),
-                    QuickItem("datetime", getString(R.string.q_datetime)),
-                    QuickItem("language", getString(R.string.q_language)),
-                    QuickItem("display_sound", getString(R.string.q_display_sound)),
+                    QuickItem("all", getString(R.string.q_system)),
+                    QuickItem("ram", getString(R.string.q_ram)),
+                    QuickItem("storage", getString(R.string.q_storage)),
                     QuickItem("launcher", getString(R.string.q_launcher)),
                 ),
                 ::onQuick,
@@ -415,25 +410,6 @@ class MainActivity : Activity() {
         ramBar.progress = r.usedPercent
     }
 
-    /** FR-21: ask the system to stop background apps, then report what was actually freed. */
-    private fun boost() {
-        if (boosting) return
-        boosting = true
-        loader.execute {
-            val freed = Memory.boost(this)
-            runOnUiThread {
-                boosting = false
-                if (isDestroyed) return@runOnUiThread
-                updateRam()
-                Toast.makeText(
-                    this,
-                    if (freed > 0) getString(R.string.boost_freed, freed) else getString(R.string.boost_none),
-                    Toast.LENGTH_SHORT,
-                ).show()
-            }
-        }
-    }
-
     // ---- autostart (FR-17..19) -------------------------------------------------------------
 
     private fun startAutostart() {
@@ -496,25 +472,13 @@ class MainActivity : Activity() {
     // ---- quick settings -------------------------------------------------------------------
 
     private fun onQuick(item: QuickItem) {
-        if (item.key == "developer") { openDeveloperMode(); return }
-        if (item.key == "launcher") { startActivity(Intent(this, SettingsActivity::class.java)); return }
-        if (!SettingsChains.open(this, item.key)) toast(R.string.cant_open_screen)
-    }
-
-    /** FR-9: if developer mode is off, explain how to turn it on and open "About". */
-    private fun openDeveloperMode() {
-        if (SettingsChains.isDeveloperModeOn(this)) {
-            if (!SettingsChains.open(this, "developer")) toast(R.string.cant_open_screen)
-            return
+        when (item.key) {
+            "developer" -> startActivity(Intent(this, DeveloperActivity::class.java))
+            "ram" -> startActivity(Intent(this, RamActivity::class.java))
+            "storage" -> startActivity(Intent(this, StorageActivity::class.java))
+            "launcher" -> startActivity(Intent(this, SettingsActivity::class.java))
+            else -> if (!SettingsChains.open(this, item.key)) toast(R.string.cant_open_screen)
         }
-        AlertDialog.Builder(this, android.R.style.Theme_Material_Dialog_Alert)
-            .setTitle(R.string.q_developer)
-            .setMessage(R.string.dev_hint)
-            .setPositiveButton(R.string.open) { _, _ ->
-                if (!SettingsChains.open(this, "about")) toast(R.string.cant_open_screen)
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
     }
 
     private fun openAppInfo(app: AppInfo) {

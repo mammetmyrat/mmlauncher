@@ -19,7 +19,7 @@ android {
     defaultConfig {
         applicationId = "com.mmlauncher.tv"
         minSdk = 24
-        targetSdk = 29
+        targetSdk = 34
         versionCode = 1
         versionName = "0.1.0"
     }
@@ -35,9 +35,6 @@ android {
         }
     }
 
-    // targetSdk 29 is deliberate (legacy file access for the built-in file manager, APK-only
-    // distribution), so Play's "target 33+" lint rule does not apply here.
-    lint { disable += "ExpiredTargetSdkVersion" }
 
     buildTypes {
         release {

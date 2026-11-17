@@ -16,6 +16,17 @@ Legend: OK = verified, PARTLY = verified only in emulators, NO = not verified, D
 Other items done beyond the list: file manager, HDMI/USB cards (code only, no hardware), update
 check with SHA-256, first-run wizard, privacy policy, seller guide.
 
+## Added after the first review (Developer, RAM, ROM screens)
+- Quick row is now: Developer mode (own screen), System settings (one button), Memory (RAM), Storage (ROM), Launcher settings.
+- RAM / Storage totals use only public APIs and are verified. **Per-app numbers** use a built-in ADB client to the box's own
+  adbd (127.0.0.1:5555, needs ADB over network). Verified only against a test double of adbd (full auth flow, key format
+  checked byte for byte against the real `adb pubkey`, `dumpsys meminfo` parsed and listed). **Not verified against a real
+  adbd or on a real box**; also untested: Android 11+ "wireless debugging" (TLS pairing is not supported).
+- On Android 7 `dumpsys diskstats` has no per-app sizes, the screen falls back to installed (APK) size and says so.
+- Developer mode toggles need WRITE_SECURE_SETTINGS (verified: grant through the test adbd, then toggle works).
+- Play Protect finding: on Google TV an old `targetSdk` plus these permissions is blocked at install. `targetSdk` raised to 34,
+  file manager now needs "All files access" on Android 11+ (permission screen may not exist on TV: the app shows the adb command).
+
 ## Before the first public release
 1. Test on at least 3 real boxes (different chips, one with Android 7 or 8). Record the model,
    Android version and which buttons failed; add working intents to `settings_chains.json`.

@@ -17,7 +17,7 @@
 6. Publish: see `docs/README.md` (copy APK, update `sha256` and `update.json`).
 
 Notes
-- `targetSdk` is 29 on purpose (built-in file manager needs legacy storage access; APK-only
-  distribution). The lint rule that complains about this for Google Play is disabled in
-  `app/build.gradle.kts`. For Google Play the target must be raised and file access reworked.
+- `targetSdk` is 34. Do NOT lower it: on Google TV with Google Play Protect, an app that targets an old SDK and
+  declares permissions such as WRITE_SECURE_SETTINGS is blocked at install ("Unsafe app blocked").
+  The file manager therefore needs "All files access" on Android 11+ (see `Dump.GRANT_FILES`).
 - Fonts: Roboto (Apache License 2.0) is bundled in `res/font/roboto_static.ttf`.

@@ -9,6 +9,8 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.provider.Settings
 import android.text.format.Formatter
 import android.view.LayoutInflater
 import android.view.View
@@ -61,12 +63,42 @@ class FileManagerActivity : Activity() {
 
     // ---- permission -------------------------------------------------------------------------
 
-    private fun hasStoragePermission() =
-        Build.VERSION.SDK_INT < 23 ||
+    /** Android 11+: "All files access". Android 6-10: READ_EXTERNAL_STORAGE (legacy storage). */
+    private fun hasStoragePermission(): Boolean = when {
+        Build.VERSION.SDK_INT >= 30 -> Environment.isExternalStorageManager()
+        Build.VERSION.SDK_INT >= 23 ->
             checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+        else -> true
+    }
+
+    private var waitingForAllFiles = false
 
     private fun requestStoragePermission() {
-        if (Build.VERSION.SDK_INT >= 23) requestPermissions(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), REQ_PERM)
+        if (Build.VERSION.SDK_INT >= 30) {
+            waitingForAllFiles = true
+            val uri = Uri.parse("package:$packageName")
+            val tries = listOf(
+                Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, uri),
+                Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION),
+            )
+            for (i in tries) {
+                try { startActivity(i); return } catch (_: Exception) {}
+            }
+            // No such screen on many TV builds: tell how to grant it from a computer.
+            waitingForAllFiles = false
+            Toast.makeText(this, getString(R.string.files_need_perm, Dump.GRANT_FILES), Toast.LENGTH_LONG).show()
+            finish()
+        } else if (Build.VERSION.SDK_INT >= 23) {
+            requestPermissions(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), REQ_PERM)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Back from the "All files access" screen.
+        if (waitingForAllFiles && !started) {
+            if (hasStoragePermission()) start() else { Toast.makeText(this, R.string.perm_denied, Toast.LENGTH_LONG).show(); finish() }
+        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -77,7 +109,10 @@ class FileManagerActivity : Activity() {
         }
     }
 
+    private var started = false
+
     private fun start() {
+        started = true
         roots = listOf(Storage.internal(this)) + Storage.removable(this)
         val p = startPath?.let { File(it) }
         if (p != null && p.isDirectory) show(p) else showRoots()

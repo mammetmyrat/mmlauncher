@@ -6,7 +6,7 @@ in emulator tests.
 
 Features: all apps and favourites, hide/uninstall menu, quick access to system settings (including
 Developer mode), HDMI inputs and USB, built-in file manager, wallpapers, RU / TK / EN interface
-(switchable inside the app), RAM monitor, autostart of one app, first-run wizard, optional update
+(switchable inside the app), RAM and storage screens (per-app numbers through the box's own local ADB), own Developer mode screen, autostart of one app, first-run wizard, optional update
 check, remote/mouse/air-mouse support.
 
 ## Docs
@@ -20,4 +20,4 @@ check, remote/mouse/air-mouse support.
     ./gradlew assembleDebug        # debug APK
     ./gradlew assembleRelease      # needs keystore.properties for a signed APK
 
-Package: `com.mmlauncher.tv`. `targetSdk` is 29 on purpose (see `RELEASE.md`).
+Package: `com.mmlauncher.tv`. `targetSdk` is 34 (see `RELEASE.md`).
