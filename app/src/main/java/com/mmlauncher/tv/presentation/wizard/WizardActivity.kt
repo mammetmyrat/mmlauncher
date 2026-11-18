@@ -12,6 +12,7 @@ import com.mmlauncher.tv.domain.model.Language
 import com.mmlauncher.tv.domain.model.Wallpaper
 import com.mmlauncher.tv.presentation.common.BaseActivity
 import com.mmlauncher.tv.presentation.common.Fonts
+import com.mmlauncher.tv.presentation.common.HomeRole
 
 /** First-run wizard: language, wallpaper, update consent, "make me your home screen". */
 class WizardActivity : BaseActivity() {
@@ -126,11 +127,22 @@ class WizardActivity : BaseActivity() {
                     body.setText(R.string.wiz_home_ok)
                 } else {
                     body.setText(R.string.wiz_home_body)
-                    focus = chip(getString(R.string.wiz_open_home_settings), false) { store.dispatch(WizardIntent.OpenHomeSettings) }
+                    focus = chip(getString(R.string.home_set_system), false) {
+                        // The system role dialog keeps the choice after a reboot; fall back to the home picker.
+                        if (!HomeRole.request(this, REQ_ROLE)) store.dispatch(WizardIntent.OpenHomeSettings)
+                    }
+                    chip(getString(R.string.home_set_adb), false) { store.dispatch(WizardIntent.SetHomeViaAdb) }
+                    chip(getString(R.string.wiz_open_home_settings), false) { store.dispatch(WizardIntent.OpenHomeSettings) }
                 }
             }
         }
         if (pageChanged || focus != null) (focus ?: if (row.childCount > 0) row.getChildAt(0) else next).requestFocus()
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQ_ROLE) store.dispatch(WizardIntent.Refresh)
     }
 
     private fun onEffect(effect: WizardEffect) {
@@ -140,4 +152,6 @@ class WizardActivity : BaseActivity() {
             is WizardEffect.Toast -> Toast.makeText(this, effect.msg.text(this), Toast.LENGTH_SHORT).show()
         }
     }
+
+    private companion object { const val REQ_ROLE = 21 }
 }

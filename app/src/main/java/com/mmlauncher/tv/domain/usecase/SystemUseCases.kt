@@ -22,11 +22,40 @@ class ToggleUsbDebugging(private val dev: DeveloperRepository) {
     }
 }
 
+enum class UnlockResult { ALREADY_ON, ENABLED, NEEDS_PERMISSION }
+
+/** What 7 taps on "Build" do: switch developer mode on, getting the needed permission through local ADB if possible. */
+class UnlockDeveloperMode(private val dev: DeveloperRepository, private val diag: DiagnosticsRepository) {
+    operator fun invoke(): UnlockResult {
+        var s = dev.status()
+        if (s.developerMode) return UnlockResult.ALREADY_ON
+        if (!s.canWriteSecure) { diag.grantWriteSecureSettings(); s = dev.status() }
+        if (!s.canWriteSecure) return UnlockResult.NEEDS_PERMISSION
+        return if (dev.setDeveloperMode(true)) UnlockResult.ENABLED else UnlockResult.NEEDS_PERMISSION
+    }
+}
+
 class GrantWriteSecureViaAdb(private val diag: DiagnosticsRepository, private val dev: DeveloperRepository) {
     /** True if the permission is held afterwards. */
     operator fun invoke(): Boolean {
         diag.grantWriteSecureSettings()
         return dev.status().canWriteSecure
+    }
+}
+
+class GrantFileAccessViaAdb(private val diag: DiagnosticsRepository, private val files: FilesRepository) {
+    /** Result: whether access is held afterwards, and why not if it is not. */
+    operator fun invoke(): Pair<Boolean, AdbFailure?> {
+        diag.grantFileAccess()
+        return files.hasAccess() to diag.lastFailure()
+    }
+}
+
+class SetDefaultHomeViaAdb(private val diag: DiagnosticsRepository, private val system: SystemRepository) {
+    /** True if this launcher is the home screen afterwards. */
+    operator fun invoke(): Boolean {
+        diag.setDefaultHome()
+        return system.isDefaultHome()
     }
 }
 

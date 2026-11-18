@@ -18,9 +18,9 @@ data class HomeState(
     val countdown: Countdown? = null,
 )
 
-enum class QuickAction { DEVELOPER, SYSTEM_SETTINGS, RAM, STORAGE, LAUNCHER_SETTINGS }
+enum class QuickAction { DEVELOPER, SYSTEM_SETTINGS, RAM, STORAGE, TOOLS, LAUNCHER_SETTINGS }
 
-enum class Screen { DEVELOPER, RAM, STORAGE, SETTINGS, FILES, WIZARD }
+enum class Screen { DEVELOPER, RAM, STORAGE, TOOLS, SETTINGS, FILES, WIZARD }
 
 sealed interface HomeIntent {
     /** [freshStart] is false when the Activity is recreated (rotation, language change). */

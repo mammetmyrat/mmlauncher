@@ -22,6 +22,12 @@ sealed interface SettingsIntent {
     object ClearCache : SettingsIntent
     object OpenStorageScreen : SettingsIntent
     object OpenAppsScreen : SettingsIntent
+    object SetHomeViaAdb : SettingsIntent
+    object ReplaceStockRequested : SettingsIntent
+    object ReplaceStockConfirmed : SettingsIntent
+    object RestoreStock : SettingsIntent
+    object OpenHomeSettings : SettingsIntent
+    object Refresh : SettingsIntent
 }
 
 sealed interface SettingsEffect {
@@ -30,4 +36,6 @@ sealed interface SettingsEffect {
     object Recreate : SettingsEffect
     data class ShowAppPicker(val apps: List<AppInfo>) : SettingsEffect
     object CacheCleared : SettingsEffect
+    /** Disabling the stock launcher needs the user's OK; [packages] are shown in the dialog. */
+    data class ConfirmReplaceStock(val packages: List<String>) : SettingsEffect
 }

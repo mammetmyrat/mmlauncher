@@ -14,12 +14,13 @@ class LoadHomeApps(private val apps: AppsRepository, private val prefs: Preferen
 
     fun from(installed: List<AppInfo>): HomeApps {
         val hidden = prefs.hidden
-        val visible = installed.filter { it.packageName !in hidden }
+        val all = listOf(AppInfo.FILES) + installed // the built-in Files card comes first
+        val visible = all.filter { it.packageName !in hidden }
         val byPackage = visible.associateBy { it.packageName }
         return HomeApps(
             visible = visible,
             favorites = prefs.favorites.mapNotNull { byPackage[it] },
-            hidden = installed.filter { it.packageName in hidden },
+            hidden = all.filter { it.packageName in hidden },
         )
     }
 }
@@ -60,6 +61,7 @@ data class AppMenu(
     val canMoveLeft: Boolean,
     val canMoveRight: Boolean,
     val canUninstall: Boolean,
+    val isBuiltIn: Boolean,
 )
 
 class BuildAppMenu(private val favorites: ManageFavorites, private val apps: AppsRepository) {
@@ -70,7 +72,8 @@ class BuildAppMenu(private val favorites: ManageFavorites, private val apps: App
             isFavorite = idx >= 0,
             canMoveLeft = idx > 0,
             canMoveRight = idx >= 0 && idx < favorites.size() - 1,
-            canUninstall = apps.canUninstall(app.packageName),
+            canUninstall = app.builtIn == null && apps.canUninstall(app.packageName),
+            isBuiltIn = app.builtIn != null,
         )
     }
 }
@@ -98,7 +101,6 @@ class LoadHomeSources(
         updates.stored()?.let { add(HomeSource.UpdateAvailable(it)) }
         system.tvInputs().forEach { add(HomeSource.Input(it)) }
         system.removableVolumes().forEach { add(HomeSource.Usb(it)) }
-        add(HomeSource.Files)
     }
 }
 

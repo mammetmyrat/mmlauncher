@@ -23,6 +23,7 @@ import com.mmlauncher.tv.domain.model.Wallpaper
 import com.mmlauncher.tv.domain.usecase.AppMenu
 import com.mmlauncher.tv.presentation.common.AppAdapter
 import com.mmlauncher.tv.presentation.common.BaseActivity
+import com.mmlauncher.tv.presentation.common.BuiltInUi
 import com.mmlauncher.tv.presentation.common.Fonts
 import com.mmlauncher.tv.presentation.common.IconLoader
 import com.mmlauncher.tv.presentation.common.Mouse
@@ -31,6 +32,7 @@ import com.mmlauncher.tv.presentation.common.QuickItem
 import com.mmlauncher.tv.presentation.developer.DeveloperActivity
 import com.mmlauncher.tv.presentation.files.FileManagerActivity
 import com.mmlauncher.tv.presentation.settings.SettingsActivity
+import com.mmlauncher.tv.presentation.tools.ToolsActivity
 import com.mmlauncher.tv.presentation.usage.RamActivity
 import com.mmlauncher.tv.presentation.usage.StorageActivity
 import com.mmlauncher.tv.presentation.wizard.WizardActivity
@@ -110,6 +112,7 @@ class MainActivity : BaseActivity() {
                     QuickItem("system", getString(R.string.q_system)),
                     QuickItem("ram", getString(R.string.q_ram)),
                     QuickItem("storage", getString(R.string.q_storage)),
+                    QuickItem("tools", getString(R.string.q_tools)),
                     QuickItem("launcher", getString(R.string.q_launcher)),
                 ),
             ) { item ->
@@ -117,6 +120,7 @@ class MainActivity : BaseActivity() {
                     "developer" -> QuickAction.DEVELOPER
                     "ram" -> QuickAction.RAM
                     "storage" -> QuickAction.STORAGE
+                    "tools" -> QuickAction.TOOLS
                     "launcher" -> QuickAction.LAUNCHER_SETTINGS
                     else -> QuickAction.SYSTEM_SETTINGS
                 }
@@ -245,9 +249,9 @@ class MainActivity : BaseActivity() {
                 is HomeSource.UpdateAvailable -> QuickItem("update", getString(R.string.upd_available, s.info.versionName))
                 is HomeSource.Input -> QuickItem("input:${s.input.id}", s.input.label)
                 is HomeSource.Usb -> QuickItem("usb:${s.volume.path}", getString(R.string.src_usb, s.volume.label))
-                HomeSource.Files -> QuickItem("files", getString(R.string.src_files))
             }
         }
+        sourcesList.visibility = if (items.isEmpty()) View.GONE else View.VISIBLE // only the USB cards live here now
         sourcesList.adapter = QuickAdapter(items) { clicked ->
             val index = items.indexOf(clicked)
             sources.getOrNull(index)?.let { store.dispatch(HomeIntent.SourceClicked(it)) }
@@ -341,6 +345,7 @@ class MainActivity : BaseActivity() {
             Screen.DEVELOPER -> DeveloperActivity::class.java
             Screen.RAM -> RamActivity::class.java
             Screen.STORAGE -> StorageActivity::class.java
+            Screen.TOOLS -> ToolsActivity::class.java
             Screen.SETTINGS -> SettingsActivity::class.java
             Screen.FILES -> FileManagerActivity::class.java
             Screen.WIZARD -> WizardActivity::class.java
@@ -364,21 +369,25 @@ class MainActivity : BaseActivity() {
             add(R.string.add_favorite, HomeIntent.AddFavorite(pkg))
         }
         add(R.string.hide, HomeIntent.Hide(pkg))
-        add(R.string.app_info, HomeIntent.ShowAppInfo(pkg))
+        if (!menu.isBuiltIn) add(R.string.app_info, HomeIntent.ShowAppInfo(pkg))
         if (menu.canUninstall) add(R.string.uninstall, HomeIntent.Uninstall(pkg))
 
         AlertDialog.Builder(this, android.R.style.Theme_Material_Dialog_Alert)
-            .setTitle(menu.app.label)
+            .setTitle(displayName(menu.app))
             .setItems(labels.toTypedArray()) { _, which -> store.dispatch(actions[which]) }
             .show()
     }
+
+    /** Name shown to the user: the launcher's own cards are localized here. */
+    private fun displayName(app: AppInfo): String =
+        BuiltInUi.of(app)?.let { getString(it.label) } ?: app.label
 
     private fun showHiddenDialog() {
         val hidden = shown.hiddenApps
         if (hidden.isEmpty()) return
         AlertDialog.Builder(this, android.R.style.Theme_Material_Dialog_Alert)
             .setTitle(R.string.unhide_title)
-            .setItems(hidden.map { it.label }.toTypedArray()) { _, which ->
+            .setItems(hidden.map { displayName(it) }.toTypedArray()) { _, which ->
                 store.dispatch(HomeIntent.Unhide(hidden[which].packageName))
             }
             .show()

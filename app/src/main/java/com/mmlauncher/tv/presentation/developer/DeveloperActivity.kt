@@ -75,12 +75,18 @@ class DeveloperActivity : BaseActivity() {
             chip(getString(if (s.developerMode) R.string.dev_turn_off else R.string.dev_turn_on), DeveloperIntent.ToggleDeveloper)
             chip(getString(if (s.usbDebugging) R.string.dev_usb_off else R.string.dev_usb_on), DeveloperIntent.ToggleUsb)
         } else {
-            hint.text = getString(R.string.dev_need_perm, Hints.ENABLE_TCPIP, Hints.GRANT_SECURE)
-            hint.visibility = View.VISIBLE
             chip(getString(R.string.dev_local_adb), DeveloperIntent.GrantViaAdb)
         }
-        if (s.developerMode) chip(getString(R.string.dev_open_system), DeveloperIntent.OpenSystem(SystemScreen.DEVELOPER))
+        // Some firmwares hide the developer screen or the "Build number" row: let the user try every way in.
+        chip(getString(R.string.dev_open_system), DeveloperIntent.OpenSystem(SystemScreen.DEVELOPER))
         chip(getString(R.string.dev_open_about), DeveloperIntent.OpenSystem(SystemScreen.ABOUT))
+        if (!s.developerMode) chip(getString(R.string.dev_open_stock), DeveloperIntent.OpenSystem(SystemScreen.ABOUT_STOCK))
+
+        val hints = ArrayList<String>()
+        if (!s.canWriteSecure) hints += getString(R.string.dev_need_perm, Hints.ENABLE_TCPIP, Hints.GRANT_SECURE)
+        if (!s.developerMode) hints += getString(R.string.dev_tips)
+        hint.text = hints.joinToString("\n\n")
+        hint.visibility = if (hints.isEmpty()) View.GONE else View.VISIBLE
         chip(getString(R.string.q_system), DeveloperIntent.OpenSystem(SystemScreen.ALL))
 
         row.getChildAt(focusedIdx.coerceIn(0, row.childCount - 1))?.requestFocus()

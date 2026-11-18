@@ -94,6 +94,31 @@
             android:screenOrientation="landscape" />
 
         <activity
+            android:name=".presentation.tools.ToolsActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+
+        <activity
+            android:name=".presentation.tools.DeviceInfoActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+
+        <activity
+            android:name=".presentation.tools.NetworkActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+
+        <activity
+            android:name=".presentation.tools.AppManagerActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+
+        <activity
+            android:name=".presentation.tools.LogsActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+
+        <activity
             android:name=".presentation.settings.SettingsActivity"
             android:exported="false"
             android:screenOrientation="landscape" />

@@ -22,6 +22,8 @@ interface PreferencesRepository {
     var wizardDone: Boolean
     var autoUpdates: Boolean
     var lastUpdateCheck: Long
+    /** Stock launchers this app switched off (so they can be switched back on). */
+    var disabledLaunchers: Set<String>
 }
 
 interface SystemRepository {
@@ -35,6 +37,10 @@ interface SystemRepository {
     fun bootId(): Long
     fun isDefaultHome(): Boolean
     fun versionName(): String
+    /** Other apps that answer the Home button (the stock launcher of the firmware). */
+    fun stockHomePackages(): List<String>
+    /** Name of the app Home opens right now, if known. */
+    fun currentHomeLabel(): String?
     fun clearCaches()
     fun now(): Long
 }
@@ -62,6 +68,12 @@ interface DiagnosticsRepository {
     fun apkSizes(): List<AppSize>
     fun stopBackground(packageName: String)
     fun grantWriteSecureSettings(): Boolean
+    /** Grants "All files access" through the box's own adbd (Android 11+). */
+    fun grantFileAccess(): Boolean
+    /** Makes this launcher the home app through adbd (role holder, falling back to set-home-activity). */
+    fun setDefaultHome(): Boolean
+    /** Disables or enables apps through adbd (`pm disable-user` / `pm enable`); true if all succeeded. */
+    fun setLaunchersEnabled(packages: List<String>, enabled: Boolean): Boolean
     fun lastFailure(): AdbFailure?
 }
 
@@ -82,4 +94,24 @@ interface FilesRepository {
 interface WallpaperRepository {
     fun saveFromFile(path: String): Boolean
     fun saveFromUri(uri: String): Boolean
+}
+
+interface DeviceInfoRepository {
+    fun report(): DeviceReport
+}
+
+interface NetworkRepository {
+    fun snapshot(): NetworkSnapshot
+}
+
+interface AppManagerRepository {
+    fun list(includeSystem: Boolean): List<ManagedApp>
+    fun perform(action: AppAction, packageName: String): ActionOutcome
+}
+
+interface LogsRepository {
+    fun read(maxLines: Int): LogDump
+    /** Writes the lines to a file and returns its path, or null. */
+    fun save(lines: List<String>): String?
+    fun clear(): Boolean
 }

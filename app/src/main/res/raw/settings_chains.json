@@ -21,6 +21,16 @@
       {"pkg": "com.android.settings", "cls": "com.android.settings.Settings$DeviceInfoSettingsActivity"},
       {"pkg": "com.android.settings", "cls": "com.android.settings.DeviceInfoSettings"}
     ],
+    "about_stock": [
+      {"pkg": "com.android.tv.settings", "cls": "com.android.tv.settings.about.AboutActivity"},
+      {"pkg": "com.android.tv.settings", "cls": "com.android.tv.settings.device.about.AboutActivity"},
+      {"pkg": "com.android.tv.settings", "cls": "com.android.tv.settings.MainSettings"}
+    ],
+    "developer_stock": [
+      {"pkg": "com.android.tv.settings", "cls": "com.android.tv.settings.system.development.DevelopmentActivity"},
+      {"pkg": "com.android.settings", "cls": "com.android.settings.Settings$DevelopmentSettingsDashboardActivity"},
+      {"pkg": "com.android.settings", "cls": "com.android.settings.Settings$DevelopmentSettingsActivity"}
+    ],
     "developer": [
       {"action": "android.settings.APPLICATION_DEVELOPMENT_SETTINGS"},
       {"pkg": "com.android.settings", "cls": "com.android.settings.Settings$DevelopmentSettingsDashboardActivity"},

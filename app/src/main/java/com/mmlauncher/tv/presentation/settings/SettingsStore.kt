@@ -6,6 +6,7 @@ import com.mmlauncher.tv.core.Scheduler
 import com.mmlauncher.tv.domain.model.SystemScreen
 import com.mmlauncher.tv.domain.model.UpdateCheck
 import com.mmlauncher.tv.domain.usecase.*
+import com.mmlauncher.tv.presentation.common.Hints
 import com.mmlauncher.tv.presentation.common.msg
 
 class SettingsStore(
@@ -19,6 +20,10 @@ class SettingsStore(
     private val clearCache: ClearLauncherCache,
     private val listApps: ListInstalledApps,
     private val openSystemScreen: OpenSystemScreen,
+    private val setHomeViaAdb: SetDefaultHomeViaAdb,
+    private val openHomeSettings: OpenHomeSettings,
+    private val replaceStock: ReplaceStockLauncher,
+    private val restoreStock: RestoreStockLauncher,
 ) : MviStore<SettingsState, SettingsIntent, SettingsEffect>(SettingsState(), scheduler) {
 
     override fun handle(intent: SettingsIntent) {
@@ -45,6 +50,34 @@ class SettingsStore(
             }
             SettingsIntent.OpenStorageScreen -> openScreen(SystemScreen.STORAGE)
             SettingsIntent.OpenAppsScreen -> openScreen(SystemScreen.APPS)
+            SettingsIntent.Refresh -> reload()
+            SettingsIntent.ReplaceStockRequested ->
+                emit(SettingsEffect.ConfirmReplaceStock(state.settings?.stockLaunchers.orEmpty()))
+            SettingsIntent.ReplaceStockConfirmed -> {
+                emit(SettingsEffect.Toast(msg(R.string.adb_working)))
+                network({ replaceStock() }) { isHome ->
+                    reload()
+                    emit(SettingsEffect.Toast(
+                        if (isHome) msg(R.string.home_replaced) else msg(R.string.home_replace_failed, Hints.ENABLE_TCPIP)
+                    ))
+                }
+            }
+            SettingsIntent.RestoreStock -> {
+                emit(SettingsEffect.Toast(msg(R.string.adb_working)))
+                network({ restoreStock() }) { ok ->
+                    reload()
+                    emit(SettingsEffect.Toast(if (ok) msg(R.string.home_restored) else msg(R.string.adb_unavailable, Hints.ENABLE_TCPIP)))
+                }
+            }
+            SettingsIntent.OpenHomeSettings ->
+                if (!openHomeSettings()) emit(SettingsEffect.Toast(msg(R.string.cant_open_screen)))
+            SettingsIntent.SetHomeViaAdb -> {
+                emit(SettingsEffect.Toast(msg(R.string.adb_working)))
+                network({ setHomeViaAdb() }) { ok ->
+                    reload()
+                    emit(SettingsEffect.Toast(if (ok) msg(R.string.dev_changed) else msg(R.string.adb_unavailable, Hints.ENABLE_TCPIP)))
+                }
+            }
         }
     }
 

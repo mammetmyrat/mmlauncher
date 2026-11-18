@@ -101,6 +101,24 @@ class AndroidSystemRepository(private val context: Context) : SystemRepository {
         ""
     }
 
+    private fun homeIntent() = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+
+    override fun stockHomePackages(): List<String> = try {
+        context.packageManager.queryIntentActivities(homeIntent(), 0)
+            .map { it.activityInfo.packageName }
+            .filter { it != context.packageName }
+            .distinct()
+    } catch (e: Exception) {
+        emptyList()
+    }
+
+    override fun currentHomeLabel(): String? = try {
+        val ri = context.packageManager.resolveActivity(homeIntent(), 0)
+        ri?.loadLabel(context.packageManager)?.toString()
+    } catch (e: Exception) {
+        null
+    }
+
     /** FR-22: the launcher's own cache directory (icons are cleared by the View). */
     override fun clearCaches() { context.cacheDir.listFiles()?.forEach { it.deleteRecursively() } }
 

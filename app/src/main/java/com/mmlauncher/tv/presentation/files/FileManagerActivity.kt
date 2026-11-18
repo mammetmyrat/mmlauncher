@@ -12,6 +12,7 @@ import android.text.format.Formatter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -36,6 +37,9 @@ class FileManagerActivity : BaseActivity() {
     private lateinit var emptyView: TextView
     private val adapter = FileAdapter()
     private var shown: FilesState? = null
+    private lateinit var accessPanel: LinearLayout
+    private lateinit var accessMsg: TextView
+    private lateinit var accessActions: LinearLayout
     private var waitingForAllFiles = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,6 +48,9 @@ class FileManagerActivity : BaseActivity() {
         store = appContainer.filesStore()
         pathView = findViewById(R.id.path)
         emptyView = findViewById(R.id.empty)
+        accessPanel = findViewById(R.id.access_panel)
+        accessMsg = findViewById(R.id.access_msg)
+        accessActions = findViewById(R.id.access_actions)
         list = findViewById<RecyclerView>(R.id.files).apply {
             layoutManager = LinearLayoutManager(this@FileManagerActivity)
             adapter = this@FileManagerActivity.adapter
@@ -81,8 +88,11 @@ class FileManagerActivity : BaseActivity() {
     // ---- rendering --------------------------------------------------------------------------
 
     private fun render(s: FilesState) {
-        if (!s.ready || s == shown) return
+        if (s == shown) return
         shown = s
+        if (s.needsAccess && !s.ready) { showAccessPanel(); return }
+        accessPanel.visibility = View.GONE
+        if (!s.ready) return
         pathView.text = s.path.orEmpty()
         adapter.items = s.entries
         adapter.notifyDataSetChanged()
@@ -100,11 +110,29 @@ class FileManagerActivity : BaseActivity() {
         }
     }
 
+    /** Shown instead of an empty screen when the system gives no way (or no obvious way) to allow file access. */
+    private fun showAccessPanel() {
+        accessPanel.visibility = View.VISIBLE
+        accessMsg.text = getString(R.string.files_access_msg, Hints.GRANT_FILES)
+        if (accessActions.childCount == 0) {
+            fun chip(label: Int, onClick: () -> Unit) {
+                val v = LayoutInflater.from(this).inflate(R.layout.item_quick, accessActions, false) as TextView
+                v.setText(label)
+                v.setOnClickListener { onClick() }
+                Fonts.apply(v)
+                accessActions.addView(v)
+            }
+            if (Build.VERSION.SDK_INT >= 30) chip(R.string.files_open_perm_screen) { openPermissionScreen() }
+            chip(R.string.files_allow_adb) { store.dispatch(FilesIntent.GrantViaAdb) }
+            accessActions.getChildAt(0)?.requestFocus()
+        }
+    }
+
     // ---- effects ----------------------------------------------------------------------------
 
     private fun onEffect(effect: FilesEffect) {
         when (effect) {
-            FilesEffect.RequestAccess -> requestAccess()
+            FilesEffect.RequestAccess -> if (Build.VERSION.SDK_INT < 30) requestAccess() // Android 11+: the panel explains
             FilesEffect.Finish -> finish()
             is FilesEffect.Toast -> Toast.makeText(this, effect.msg.text(this), Toast.LENGTH_LONG).show()
             is FilesEffect.ShowFileMenu -> showFileMenu(effect)
@@ -125,25 +153,24 @@ class FileManagerActivity : BaseActivity() {
 
     // ---- storage permission (platform) ------------------------------------------------------
 
-    /** Android 11+: "All files access" screen (may not exist on TV builds). Android 6-10: runtime permission. */
+    /** Android 6-10: the usual runtime permission dialog. */
     private fun requestAccess() {
-        if (Build.VERSION.SDK_INT >= 30) {
-            waitingForAllFiles = true
-            val uri = Uri.parse("package:$packageName")
-            val tries = listOf(
-                Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, uri),
-                Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION),
-            )
-            for (i in tries) {
-                try { startActivity(i); return } catch (_: Exception) {}
-            }
-            // No such screen on many TV builds: tell how to grant it from a computer.
-            waitingForAllFiles = false
-            Toast.makeText(this, getString(R.string.files_need_perm, Hints.GRANT_FILES), Toast.LENGTH_LONG).show()
-            finish()
-        } else if (Build.VERSION.SDK_INT >= 23) {
-            requestPermissions(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), REQ_PERM)
+        if (Build.VERSION.SDK_INT >= 23) requestPermissions(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), REQ_PERM)
+    }
+
+    /** Android 11+: the "All files access" screen. Many TV firmwares do not have it, so failure is reported. */
+    private fun openPermissionScreen() {
+        waitingForAllFiles = true
+        val uri = Uri.parse("package:$packageName")
+        val tries = listOf(
+            Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, uri),
+            Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION),
+        )
+        for (i in tries) {
+            try { startActivity(i); return } catch (_: Exception) {}
         }
+        waitingForAllFiles = false
+        Toast.makeText(this, R.string.files_no_perm_screen, Toast.LENGTH_LONG).show()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {

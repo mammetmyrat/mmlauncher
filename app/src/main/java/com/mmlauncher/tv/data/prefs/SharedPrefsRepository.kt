@@ -50,6 +50,10 @@ class SharedPrefsRepository(context: Context) : PreferencesRepository {
         get() = sp.getBoolean("auto_updates", false)
         set(v) { sp.edit().putBoolean("auto_updates", v).apply() }
 
+    override var disabledLaunchers: Set<String>
+        get() = list("disabled_launchers").toSet()
+        set(v) { sp.edit().putString("disabled_launchers", v.joinToString("\n")).apply() }
+
     override var lastUpdateCheck: Long
         get() = sp.getLong("last_update_check", 0L)
         set(v) { sp.edit().putLong("last_update_check", v).apply() }

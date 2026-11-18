@@ -125,7 +125,10 @@ class HomeStore(
     // ---- actions ----------------------------------------------------------------------------
 
     private fun launch(app: AppInfo) {
-        if (!launchApp(app)) toast(R.string.cant_open_app)
+        when (app.builtIn) {
+            BuiltInApp.FILES -> emit(HomeEffect.Navigate(Screen.FILES))
+            null -> if (!launchApp(app)) toast(R.string.cant_open_app)
+        }
     }
 
     private fun startCountdown(plan: AutostartPlan) {
@@ -157,6 +160,7 @@ class HomeStore(
             QuickAction.DEVELOPER -> emit(HomeEffect.Navigate(Screen.DEVELOPER))
             QuickAction.RAM -> emit(HomeEffect.Navigate(Screen.RAM))
             QuickAction.STORAGE -> emit(HomeEffect.Navigate(Screen.STORAGE))
+            QuickAction.TOOLS -> emit(HomeEffect.Navigate(Screen.TOOLS))
             QuickAction.LAUNCHER_SETTINGS -> emit(HomeEffect.Navigate(Screen.SETTINGS))
             QuickAction.SYSTEM_SETTINGS -> if (!openSystemScreen(SystemScreen.ALL)) toast(R.string.cant_open_screen)
         }
@@ -167,7 +171,6 @@ class HomeStore(
             is HomeSource.UpdateAvailable -> emit(HomeEffect.ShowUpdateDialog(source.info))
             is HomeSource.Input -> if (!openTvInput(source.input.id)) toast(R.string.cant_open_screen)
             is HomeSource.Usb -> emit(HomeEffect.Navigate(Screen.FILES, source.volume.path))
-            HomeSource.Files -> emit(HomeEffect.Navigate(Screen.FILES))
         }
     }
 

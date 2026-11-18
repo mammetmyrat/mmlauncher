@@ -38,9 +38,9 @@ class StoresTest {
         r.store.dispatch(HomeIntent.Create(true)); r.store.dispatch(HomeIntent.Start)
         val s = r.store.state
         assertTrue(s.loaded)
-        assertEquals(listOf("a", "b", "c"), s.apps.map { it.packageName })
+        assertEquals(listOf(AppInfo.FILES.packageName, "a", "b", "c"), s.apps.map { it.packageName })
         assertEquals(RamInfo(2000, 500), s.ram)
-        assertEquals(listOf(HomeSource.Files), s.sources)
+        assertTrue("Files is a card in the app list now, not in the sources row", s.sources.isEmpty())
     }
 
     @Test fun `first run opens the wizard and does not autostart`() {
@@ -64,10 +64,10 @@ class StoresTest {
         assertEquals(listOf("b", "a"), r.store.state.favorites.map { it.packageName })
 
         r.store.dispatch(HomeIntent.Hide("c"))
-        assertEquals(listOf("a", "b"), r.store.state.apps.map { it.packageName })
+        assertEquals(listOf(AppInfo.FILES.packageName, "a", "b"), r.store.state.apps.map { it.packageName })
         assertEquals(listOf("c"), r.store.state.hiddenApps.map { it.packageName })
         r.store.dispatch(HomeIntent.Unhide("c"))
-        assertEquals(3, r.store.state.apps.size)
+        assertEquals(4, r.store.state.apps.size)
         assertTrue(r.store.state.hiddenApps.isEmpty())
     }
 
@@ -95,6 +95,20 @@ class StoresTest {
         val again = HomeRig().also { it.prefs.autostartPackage = "b" }
         again.store.dispatch(HomeIntent.Create(freshStart = false)); again.store.dispatch(HomeIntent.Start)
         assertNull("rotation / language change must not autostart", again.store.state.countdown)
+    }
+
+    @Test fun `launching the Files card opens the file manager, not another app`() {
+        val r = HomeRig()
+        r.store.dispatch(HomeIntent.Launch(AppInfo.FILES))
+        assertEquals(HomeEffect.Navigate(Screen.FILES), r.effects.single())
+        assertTrue(r.apps.launched.isEmpty())
+    }
+
+    @Test fun `Files card can be added to favorites`() {
+        val r = HomeRig()
+        r.store.dispatch(HomeIntent.Start)
+        r.store.dispatch(HomeIntent.AddFavorite(AppInfo.FILES.packageName))
+        assertEquals(AppInfo.FILES.packageName, r.store.state.favorites.single().packageName)
     }
 
     @Test fun `a failing launch becomes a toast, not a crash`() {
@@ -176,9 +190,13 @@ class StoresTest {
         "/sdcard/Music" to listOf(FileEntry("s.mp3", "/sdcard/Music/s.mp3", false, 9)),
     )
 
-    private fun filesStore(files: FakeFiles = FakeFiles(tree), effects: MutableList<FilesEffect> = ArrayList()): FilesStore {
+    private fun filesStore(
+        files: FakeFiles = FakeFiles(tree),
+        effects: MutableList<FilesEffect> = ArrayList(),
+        diag: FakeDiagnostics = FakeDiagnostics(),
+    ): FilesStore {
         val s = FilesStore(ImmediateScheduler(), HasFileAccess(files), ListDirectory(files), OpenFile(files), IsImageFile(files),
-            FileRoots(files), ChangeWallpaper(FakePrefs(), FakeWallpapers()))
+            FileRoots(files), ChangeWallpaper(FakePrefs(), FakeWallpapers()), GrantFileAccessViaAdb(diag, files))
         s.bind({}, { effects += it })
         return s
     }
@@ -212,17 +230,43 @@ class StoresTest {
         store.dispatch(FilesIntent.Init(null))
         assertEquals(FilesEffect.RequestAccess, effects.single())
         assertFalse(store.state.ready)
+        assertTrue("the View shows the explanation panel", store.state.needsAccess)
         files.access = true
         store.dispatch(FilesIntent.Recheck)
         assertTrue(store.state.ready)
+        assertFalse(store.state.needsAccess)
     }
 
-    @Test fun `coming back from the permission screen without access is reported, not silent`() {
+    @Test fun `without access the screen stays and explains instead of closing silently`() {
         val files = FakeFiles(tree).apply { access = false }
         val effects = ArrayList<FilesEffect>()
         val store = filesStore(files, effects)
         store.dispatch(FilesIntent.Init(null)); store.dispatch(FilesIntent.Recheck)
-        assertTrue(effects.contains(FilesEffect.Finish))
+        store.dispatch(FilesIntent.AccessDenied)
+        assertFalse(effects.contains(FilesEffect.Finish))
+        assertTrue(store.state.needsAccess)
+        assertTrue(effects.last() is FilesEffect.Toast)
+    }
+
+    @Test fun `file access can be granted through local adb`() {
+        val files = FakeFiles(tree).apply { access = false }
+        val diag = FakeDiagnostics().apply { onGrantFileAccess = { files.access = true } }
+        val store = filesStore(files, diag = diag)
+        store.dispatch(FilesIntent.Init(null))
+        assertFalse(store.state.ready)
+        store.dispatch(FilesIntent.GrantViaAdb)
+        assertTrue(store.state.ready)
+        assertFalse(store.state.needsAccess)
+    }
+
+    @Test fun `failed adb grant keeps the panel and says why`() {
+        val files = FakeFiles(tree).apply { access = false }
+        val effects = ArrayList<FilesEffect>()
+        val store = filesStore(files, effects) // FakeDiagnostics: adbd not listening, access stays false
+        store.dispatch(FilesIntent.Init(null)); store.dispatch(FilesIntent.GrantViaAdb)
+        assertFalse(store.state.ready)
+        assertTrue(store.state.needsAccess)
+        assertTrue(effects.last() is FilesEffect.Toast)
     }
 
     @Test fun `long press offers wallpaper only for images`() {

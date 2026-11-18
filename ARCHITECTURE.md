@@ -22,6 +22,7 @@ interfaces that `domain` defines; `presentation` talks only to `domain` (use cas
 | `data` | Implementations: SharedPreferences, PackageManager, `dumpsys` parsers, `LocalAdb`, HTTP update, `java.io.File` |
 | `di` | `AppContainer`: the composition root. Creates repositories, use cases and one store per Activity |
 | `presentation.<feature>` | `*Contract.kt` (State / Intent / Effect), `*Store.kt`, the Activity (a "dumb" View) |
+| `presentation.tools` | Tools menu and its four screens: device info, network, app manager, logs |
 | `presentation.common` | Shared UI: adapters, `Fonts`, `LocaleHelper`, `Mouse`, `Msg` (string ids for the View) |
 
 ## MVI in this app

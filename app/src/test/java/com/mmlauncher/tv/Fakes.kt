@@ -18,6 +18,7 @@ class FakePrefs : PreferencesRepository {
     override var wizardDone = true
     override var autoUpdates = false
     override var lastUpdateCheck = 0L
+    override var disabledLaunchers: Set<String> = emptySet()
 }
 
 class FakeApps(var apps: List<AppInfo> = emptyList()) : AppsRepository {
@@ -46,6 +47,9 @@ class FakeSystem : SystemRepository {
     override fun bootId() = boot
     override fun isDefaultHome() = home
     override fun versionName() = "0.1.0"
+    var stock: List<String> = listOf("com.google.android.tvlauncher")
+    override fun stockHomePackages() = stock
+    override fun currentHomeLabel(): String? = "Stock"
     override fun clearCaches() {}
     override fun now() = time
 }
@@ -80,7 +84,15 @@ class FakeDiagnostics : DiagnosticsRepository {
     override fun appSizes() = sizes
     override fun apkSizes() = apk
     override fun stopBackground(packageName: String) { stopped += packageName }
-    override fun grantWriteSecureSettings() = true
+    var onGrantFileAccess: () -> Unit = {}
+    var onSetDefaultHome: () -> Unit = {}
+    var onGrantWrite: () -> Unit = {}
+    override fun grantWriteSecureSettings() = true.also { onGrantWrite() }
+    override fun grantFileAccess() = true.also { onGrantFileAccess() }
+    override fun setDefaultHome() = true.also { onSetDefaultHome() }
+    var launchersResult = true
+    var lastLaunchers: Pair<List<String>, Boolean>? = null
+    override fun setLaunchersEnabled(packages: List<String>, enabled: Boolean): Boolean { lastLaunchers = packages to enabled; return launchersResult }
     override fun lastFailure() = (memory as? Fetch.Failed)?.reason
 }
 
@@ -99,4 +111,32 @@ class FakeWallpapers : WallpaperRepository {
     var last: String? = null
     override fun saveFromFile(path: String) = ok.also { last = path }
     override fun saveFromUri(uri: String) = ok.also { last = uri }
+}
+
+class FakeAppManager(var apps: List<ManagedApp> = emptyList()) : AppManagerRepository {
+    val performed = ArrayList<Pair<AppAction, String>>()
+    var outcome: ActionOutcome = ActionOutcome.Done
+    override fun list(includeSystem: Boolean) = apps.filter { includeSystem || !it.isSystem }
+    override fun perform(action: AppAction, packageName: String): ActionOutcome { performed += action to packageName; return outcome }
+}
+
+class FakeLogs(var dump: LogDump) : LogsRepository {
+    var saved: List<String>? = null
+    var cleared = false
+    override fun read(maxLines: Int) = dump
+    override fun save(lines: List<String>): String? { saved = lines; return "/sdcard/Download/log.txt" }
+    override fun clear() = true.also { cleared = true }
+}
+
+fun managed(pkg: String, system: Boolean = false, enabled: Boolean = true) = ManagedApp(pkg, pkg.uppercase(), system, enabled, 1000)
+
+class FakeDeveloper(var canWrite: Boolean = true) : DeveloperRepository {
+    var dev = false; var usb = false
+    override fun status() = DeveloperStatus(dev, usb, canWrite, DeviceInfo("13", 33, "tv", "b"))
+    override fun setDeveloperMode(on: Boolean) = canWrite.also { if (it) dev = on }
+    override fun setUsbDebugging(on: Boolean) = canWrite.also { if (it) usb = on }
+}
+
+class FakeDeviceInfo : DeviceInfoRepository {
+    override fun report() = DeviceReport(listOf(InfoSection(InfoSectionId.DEVICE, listOf(InfoRow(InfoKey.BUILD, "X"), InfoRow(InfoKey.MODEL, "Y")))))
 }

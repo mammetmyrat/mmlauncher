@@ -25,6 +25,7 @@ sealed interface WizardIntent {
     data class SelectWallpaper(val wallpaper: Wallpaper) : WizardIntent
     data class SetAutoUpdates(val on: Boolean) : WizardIntent
     object OpenHomeSettings : WizardIntent
+    object SetHomeViaAdb : WizardIntent
 }
 
 sealed interface WizardEffect {

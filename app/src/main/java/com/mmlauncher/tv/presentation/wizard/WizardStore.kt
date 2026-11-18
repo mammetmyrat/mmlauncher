@@ -4,6 +4,7 @@ import com.mmlauncher.tv.R
 import com.mmlauncher.tv.core.MviStore
 import com.mmlauncher.tv.core.Scheduler
 import com.mmlauncher.tv.domain.usecase.*
+import com.mmlauncher.tv.presentation.common.Hints
 import com.mmlauncher.tv.presentation.common.msg
 
 class WizardStore(
@@ -15,6 +16,7 @@ class WizardStore(
     private val isDefaultHome: IsDefaultHome,
     private val openHomeSettings: OpenHomeSettings,
     private val finishWizard: FinishWizard,
+    private val setHomeViaAdb: SetDefaultHomeViaAdb,
 ) : MviStore<WizardState, WizardIntent, WizardEffect>(WizardState(), scheduler) {
 
     override fun handle(intent: WizardIntent) {
@@ -30,6 +32,13 @@ class WizardStore(
             is WizardIntent.SetAutoUpdates -> {
                 setAutoUpdates(intent.on); refresh()
                 setState { copy(page = page + 1) } // the question is answered: go on
+            }
+            WizardIntent.SetHomeViaAdb -> {
+                emit(WizardEffect.Toast(msg(R.string.adb_working)))
+                network({ setHomeViaAdb() }) { ok ->
+                    refresh()
+                    emit(WizardEffect.Toast(if (ok) msg(R.string.dev_changed) else msg(R.string.adb_unavailable, Hints.ENABLE_TCPIP)))
+                }
             }
             WizardIntent.OpenHomeSettings ->
                 if (!openHomeSettings()) emit(WizardEffect.Toast(msg(R.string.cant_open_screen)))

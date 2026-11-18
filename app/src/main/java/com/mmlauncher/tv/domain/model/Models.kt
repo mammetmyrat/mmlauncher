@@ -2,12 +2,22 @@ package com.mmlauncher.tv.domain.model
 
 /** Pure Kotlin domain models: no Android types here. */
 
+/** Cards the launcher provides itself, shown in the app list like ordinary apps. */
+enum class BuiltInApp { FILES }
+
 data class AppInfo(
     val label: String,
     val packageName: String,
     val activityName: String,
     val isLeanback: Boolean,
-)
+    /** Non-null for the launcher's own cards (the View shows a localized label and its own icon). */
+    val builtIn: BuiltInApp? = null,
+) {
+    companion object {
+        /** The file manager as a card in the app list. */
+        val FILES = AppInfo("Files", "mm.builtin.files", "", true, BuiltInApp.FILES)
+    }
+}
 
 data class TvInput(val id: String, val label: String)
 
@@ -78,7 +88,6 @@ sealed interface HomeSource {
     data class UpdateAvailable(val info: UpdateInfo) : HomeSource
     data class Input(val input: TvInput) : HomeSource
     data class Usb(val volume: Volume) : HomeSource
-    object Files : HomeSource
 }
 
 data class AutostartPlan(val app: AppInfo, val delaySeconds: Int)
@@ -87,7 +96,54 @@ data class AutostartPlan(val app: AppInfo, val delaySeconds: Int)
 object SystemScreen {
     const val ALL = "all"
     const val ABOUT = "about"
+    /** The unmodified Android TV Settings screens, when the vendor left them on the device. */
+    const val ABOUT_STOCK = "about_stock"
+    const val DEVELOPER_STOCK = "developer_stock"
     const val DEVELOPER = "developer"
     const val STORAGE = "storage"
     const val APPS = "apps"
 }
+
+// ---- tools: device info, network, app manager, logs ----------------------------------------------
+
+enum class InfoSectionId { DEVICE, PROCESSOR, DISPLAY, DRM, CODECS, SOFTWARE }
+
+enum class InfoKey {
+    MODEL, MANUFACTURER, PRODUCT, ANDROID, PATCH, BUILD, KERNEL, ABIS,
+    CORES, RAM, STORAGE,
+    RESOLUTION, DENSITY, REFRESH, MODES, HDR,
+    WIDEVINE, WIDEVINE_VERSION, HDCP, DRM_VENDOR,
+    AVC, HEVC, VP9, AV1, MPEG2,
+    WEBVIEW, LAUNCHER,
+}
+
+data class InfoRow(val key: InfoKey, val value: String)
+data class InfoSection(val id: InfoSectionId, val rows: List<InfoRow>)
+data class DeviceReport(val sections: List<InfoSection>)
+
+enum class NetKind { WIFI, ETHERNET, OTHER }
+data class NetInterface(val name: String, val kind: NetKind, val ipv4: String?, val mac: String?)
+data class NetworkSnapshot(val interfaces: List<NetInterface>, val adbListening: Boolean)
+
+data class ManagedApp(
+    val packageName: String,
+    val label: String,
+    val isSystem: Boolean,
+    val isEnabled: Boolean,
+    val apkBytes: Long,
+)
+
+enum class AppAction { OPEN_INFO, UNINSTALL, FORCE_STOP, CLEAR_CACHE, CLEAR_DATA, DISABLE, ENABLE, EXTRACT_APK }
+
+sealed interface ActionOutcome {
+    object Done : ActionOutcome
+    data class Saved(val path: String) : ActionOutcome
+    /** The action needs the box's own adbd and it did not answer. */
+    data class NeedsAdb(val reason: AdbFailure) : ActionOutcome
+    object Failed : ActionOutcome
+}
+
+enum class LogLevel(val letter: Char) { VERBOSE('V'), DEBUG('D'), INFO('I'), WARN('W'), ERROR('E') }
+
+/** [viaAdb] false means only this launcher's own log could be read ([failure] says why not more). */
+data class LogDump(val lines: List<String>, val viaAdb: Boolean, val failure: AdbFailure?)

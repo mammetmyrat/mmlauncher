@@ -15,6 +15,7 @@ import com.mmlauncher.tv.domain.model.Wallpaper
 import com.mmlauncher.tv.domain.usecase.LauncherSettings
 import com.mmlauncher.tv.presentation.common.BaseActivity
 import com.mmlauncher.tv.presentation.common.Fonts
+import com.mmlauncher.tv.presentation.common.HomeRole
 import com.mmlauncher.tv.presentation.common.IconLoader
 import com.mmlauncher.tv.presentation.wizard.WizardActivity
 
@@ -33,6 +34,7 @@ class SettingsActivity : BaseActivity() {
 
     override fun onStart() {
         super.onStart()
+        shown = null
         store.bind(::render, ::onEffect)
         store.dispatch(SettingsIntent.Load)
     }
@@ -107,6 +109,21 @@ class SettingsActivity : BaseActivity() {
             }
         }
 
+        row(R.id.home_row) { r ->
+            s.currentHome?.let { chip(r, getString(R.string.home_current, it), s.isDefaultHome) {} }
+            if (s.hasDisabledLaunchers) chip(r, getString(R.string.home_restore), false) { store.dispatch(SettingsIntent.RestoreStock) }
+            if (s.isDefaultHome) {
+                if (s.currentHome == null) chip(r, getString(R.string.home_is_default), true) {}
+            } else {
+                chip(r, getString(R.string.home_set_system), false) {
+                    if (!HomeRole.request(this, REQ_ROLE)) store.dispatch(SettingsIntent.OpenHomeSettings)
+                }
+                chip(r, getString(R.string.home_set_adb), false) { store.dispatch(SettingsIntent.SetHomeViaAdb) }
+                chip(r, getString(R.string.wiz_open_home_settings), false) { store.dispatch(SettingsIntent.OpenHomeSettings) }
+                if (s.stockLaunchers.isNotEmpty()) chip(r, getString(R.string.home_replace), false) { store.dispatch(SettingsIntent.ReplaceStockRequested) }
+            }
+        }
+
         row(R.id.mem_row) { r ->
             chip(r, getString(R.string.clear_cache), false) { store.dispatch(SettingsIntent.ClearCache) }
             // Other apps' caches can only be cleared by the user in system screens.
@@ -129,6 +146,12 @@ class SettingsActivity : BaseActivity() {
             SettingsEffect.Recreate -> recreate() // re-applies the locale via attachBaseContext
             is SettingsEffect.ShowAppPicker -> showAppPicker(effect.apps)
             SettingsEffect.CacheCleared -> IconLoader.clearAll()
+            is SettingsEffect.ConfirmReplaceStock -> AlertDialog.Builder(this, android.R.style.Theme_Material_Dialog_Alert)
+                .setTitle(R.string.home_replace_title)
+                .setMessage(getString(R.string.home_replace_msg, effect.packages.joinToString("\n")))
+                .setPositiveButton(R.string.yes) { _, _ -> store.dispatch(SettingsIntent.ReplaceStockConfirmed) }
+                .setNegativeButton(R.string.no, null)
+                .show()
         }
     }
 
@@ -156,10 +179,11 @@ class SettingsActivity : BaseActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         val uri = data?.data
+        if (requestCode == REQ_ROLE) store.dispatch(SettingsIntent.Refresh)
         if (requestCode == REQ_IMAGE && resultCode == RESULT_OK && uri != null) {
             store.dispatch(SettingsIntent.WallpaperPicked(uri.toString()))
         }
     }
 
-    private companion object { const val REQ_IMAGE = 1 }
+    private companion object { const val REQ_IMAGE = 1; const val REQ_ROLE = 21 }
 }

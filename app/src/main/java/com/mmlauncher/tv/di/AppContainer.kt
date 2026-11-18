@@ -11,12 +11,20 @@ import com.mmlauncher.tv.data.prefs.SharedPrefsRepository
 import com.mmlauncher.tv.data.system.AndroidDeveloperRepository
 import com.mmlauncher.tv.data.system.AndroidSystemRepository
 import com.mmlauncher.tv.data.system.AndroidSystemScreens
+import com.mmlauncher.tv.data.tools.AndroidDeviceInfoRepository
+import com.mmlauncher.tv.data.tools.AndroidNetworkRepository
+import com.mmlauncher.tv.data.tools.AppManagerRepositoryImpl
+import com.mmlauncher.tv.data.tools.LogsRepositoryImpl
 import com.mmlauncher.tv.data.update.HttpUpdateRepository
 import com.mmlauncher.tv.domain.usecase.*
 import com.mmlauncher.tv.presentation.developer.DeveloperStore
 import com.mmlauncher.tv.presentation.files.FilesStore
 import com.mmlauncher.tv.presentation.home.HomeStore
 import com.mmlauncher.tv.presentation.settings.SettingsStore
+import com.mmlauncher.tv.presentation.tools.AppManagerStore
+import com.mmlauncher.tv.presentation.tools.DeviceInfoStore
+import com.mmlauncher.tv.presentation.tools.LogsStore
+import com.mmlauncher.tv.presentation.tools.NetworkStore
 import com.mmlauncher.tv.presentation.usage.RamStore
 import com.mmlauncher.tv.presentation.usage.StorageStore
 import com.mmlauncher.tv.presentation.wizard.WizardStore
@@ -41,6 +49,10 @@ class AppContainer(context: Context) {
     private val updates = HttpUpdateRepository(app, preferences, preferences.sp)
     private val files = FilesRepositoryImpl(app)
     val wallpaperStorage = WallpaperStorage(app)
+    private val deviceInfo = AndroidDeviceInfoRepository(app)
+    private val network = AndroidNetworkRepository()
+    private val appManager = AppManagerRepositoryImpl(app)
+    private val logs = LogsRepositoryImpl(app)
 
     // ---- use cases ----------------------------------------------------------------------------
     private val loadHomeApps = LoadHomeApps(apps, preferences)
@@ -63,11 +75,14 @@ class AppContainer(context: Context) {
         scheduler, loadSettings, ChangeLanguage(preferences), changeWallpaper,
         ConfigureAutostart(preferences, system), SetAutoUpdates(preferences), CheckUpdatesNow(updates),
         ClearLauncherCache(system), ListInstalledApps(apps), openSystemScreen,
+        SetDefaultHomeViaAdb(diagnostics, system), OpenHomeSettings(screens),
+        ReplaceStockLauncher(diagnostics, system, preferences), RestoreStockLauncher(diagnostics, preferences),
     )
 
     fun wizardStore() = WizardStore(
         scheduler, loadSettings, ChangeLanguage(preferences), changeWallpaper, SetAutoUpdates(preferences),
         IsDefaultHome(system), OpenHomeSettings(screens), FinishWizard(preferences),
+        SetDefaultHomeViaAdb(diagnostics, system),
     )
 
     fun developerStore() = DeveloperStore(
@@ -82,8 +97,20 @@ class AppContainer(context: Context) {
 
     fun storageStore() = StorageStore(scheduler, GetStorageUsage(system, diagnostics), OpenAppInfo(screens), openSystemScreen)
 
+    fun deviceInfoStore() = DeviceInfoStore(
+        scheduler, GetDeviceReport(deviceInfo), UnlockDeveloperMode(developer, diagnostics),
+    )
+
+    fun networkStore() = NetworkStore(scheduler, GetNetworkSnapshot(network))
+
+    fun appManagerStore() = AppManagerStore(
+        scheduler, ListManagedApps(appManager), AppActionsFor(apps), PerformAppAction(appManager, screens),
+    )
+
+    fun logsStore() = LogsStore(scheduler, ReadLogs(logs), FilterLogs(), SaveLogs(logs), ClearLogs(logs))
+
     fun filesStore() = FilesStore(
         scheduler, HasFileAccess(files), ListDirectory(files), OpenFile(files), IsImageFile(files),
-        FileRoots(files), changeWallpaper,
+        FileRoots(files), changeWallpaper, GrantFileAccessViaAdb(diagnostics, files),
     )
 }

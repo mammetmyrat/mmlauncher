@@ -12,6 +12,10 @@ data class LauncherSettings(
     val autostartDelaySeconds: Int,
     val autoUpdates: Boolean,
     val versionName: String,
+    val isDefaultHome: Boolean,
+    val currentHome: String?,
+    val stockLaunchers: List<String>,
+    val hasDisabledLaunchers: Boolean,
 )
 
 class LoadLauncherSettings(
@@ -27,6 +31,10 @@ class LoadLauncherSettings(
         autostartDelaySeconds = prefs.autostartDelaySeconds,
         autoUpdates = prefs.autoUpdates,
         versionName = system.versionName(),
+        isDefaultHome = system.isDefaultHome(),
+        currentHome = system.currentHomeLabel(),
+        stockLaunchers = system.stockHomePackages(),
+        hasDisabledLaunchers = prefs.disabledLaunchers.isNotEmpty(),
     )
 }
 
@@ -88,4 +96,34 @@ class OpenHomeSettings(private val screens: SystemScreens) {
 
 class IsWizardDone(private val prefs: PreferencesRepository) {
     operator fun invoke() = prefs.wizardDone
+}
+
+/**
+ * Google TV and many TV firmwares keep their own launcher on the Home button no matter what the user
+ * chooses. The reliable way is to switch that launcher off (reversible with [RestoreStockLauncher]).
+ */
+class ReplaceStockLauncher(
+    private val diag: DiagnosticsRepository,
+    private val system: SystemRepository,
+    private val prefs: PreferencesRepository,
+) {
+    /** True if this launcher answers Home afterwards. */
+    operator fun invoke(): Boolean {
+        val stock = system.stockHomePackages()
+        if (stock.isEmpty()) return system.isDefaultHome()
+        val done = diag.setLaunchersEnabled(stock, false)
+        if (done) prefs.disabledLaunchers = prefs.disabledLaunchers + stock
+        return system.isDefaultHome()
+    }
+}
+
+class RestoreStockLauncher(private val diag: DiagnosticsRepository, private val prefs: PreferencesRepository) {
+    /** True if the launchers were switched back on. */
+    operator fun invoke(): Boolean {
+        val disabled = prefs.disabledLaunchers.toList()
+        if (disabled.isEmpty()) return false
+        val ok = diag.setLaunchersEnabled(disabled, true)
+        if (ok) prefs.disabledLaunchers = emptySet()
+        return ok
+    }
 }

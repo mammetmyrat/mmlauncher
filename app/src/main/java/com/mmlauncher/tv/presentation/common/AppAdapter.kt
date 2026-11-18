@@ -36,11 +36,17 @@ class AppAdapter(
     override fun onBindViewHolder(holder: VH, position: Int) {
         val app = items[position]
         holder.itemView.tag = app // used by the Menu key handler
-        holder.label.text = app.label
         holder.icon.tag = app.packageName
-        holder.icon.setImageDrawable(null)
-        icons.get(app) { d ->
-            if (holder.icon.tag == app.packageName) holder.icon.setImageDrawable(d)
+        val own = BuiltInUi.of(app)
+        if (own != null) { // the launcher's own card: localized label and its own icon
+            holder.label.setText(own.label)
+            holder.icon.setImageResource(own.icon)
+        } else {
+            holder.label.text = app.label
+            holder.icon.setImageDrawable(null)
+            icons.get(app) { d ->
+                if (holder.icon.tag == app.packageName) holder.icon.setImageDrawable(d)
+            }
         }
         holder.itemView.setOnClickListener { onClick(app) }
         // Holding OK on the remote fires a long click.

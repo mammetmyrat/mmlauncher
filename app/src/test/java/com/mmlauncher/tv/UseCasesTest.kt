@@ -13,15 +13,36 @@ class UseCasesTest {
     @Test fun `hidden apps are removed from the list and reported separately`() {
         prefs.hidden = setOf("b")
         val home = LoadHomeApps(apps, prefs)()
-        assertEquals(listOf("a", "c"), home.visible.map { it.packageName })
-        assertEquals(listOf("b"), home.hidden.map { it.packageName })
+        assertEquals(listOf("a", "c"), home.visible.real())
+        assertEquals(listOf("b"), home.hidden.real())
+    }
+
+    private fun List<AppInfo>.real() = filter { it.builtIn == null }.map { it.packageName }
+
+    @Test fun `the built-in Files card comes first, like an app`() {
+        val home = LoadHomeApps(apps, prefs)()
+        assertEquals(BuiltInApp.FILES, home.visible.first().builtIn)
+        assertEquals(listOf("a", "b", "c"), home.visible.real())
+    }
+
+    @Test fun `Files can be a favorite or hidden like any app, and has no uninstall`() {
+        prefs.favorites = listOf(AppInfo.FILES.packageName, "a")
+        val home = LoadHomeApps(apps, prefs)()
+        assertEquals(AppInfo.FILES.packageName, home.favorites.first().packageName)
+        val menu = BuildAppMenu(ManageFavorites(prefs), apps)(AppInfo.FILES)
+        assertTrue(menu.isBuiltIn); assertFalse(menu.canUninstall); assertTrue(menu.isFavorite)
+
+        prefs.hidden = setOf(AppInfo.FILES.packageName)
+        val hidden = LoadHomeApps(apps, prefs)()
+        assertTrue(hidden.visible.none { it.builtIn != null })
+        assertEquals(AppInfo.FILES.packageName, hidden.hidden.single().packageName)
     }
 
     @Test fun `favorites keep the user's order and skip apps that are gone or hidden`() {
         prefs.favorites = listOf("c", "gone", "a", "b")
         prefs.hidden = setOf("b")
         val home = LoadHomeApps(apps, prefs)()
-        assertEquals(listOf("c", "a"), home.favorites.map { it.packageName })
+        assertEquals(listOf("c", "a"), home.favorites.real())
     }
 
     @Test fun `move swaps neighbours and refuses to leave the list`() {
@@ -135,6 +156,21 @@ class UseCasesTest {
         assertEquals(listOf("/sdcard"), ListDirectory(FakeFiles(tree))(null)!!.entries.map { it.path })
     }
 
+    @Test fun `default home is reported from the system after the adb command`() {
+        val system = FakeSystem()
+        val diag = FakeDiagnostics().apply { onSetDefaultHome = { system.home = true } }
+        assertFalse(system.isDefaultHome())
+        assertTrue(SetDefaultHomeViaAdb(diag, system)())
+        assertTrue(system.isDefaultHome())
+        val stuck = FakeSystem() // the command ran but the firmware ignored it
+        assertFalse(SetDefaultHomeViaAdb(FakeDiagnostics(), stuck)())
+    }
+
+    @Test fun `launcher settings tell whether it is the home screen`() {
+        val system = FakeSystem().apply { home = true }
+        assertTrue(LoadLauncherSettings(prefs, apps, system)().isDefaultHome)
+    }
+
     @Test fun `changing to the same language is not a change`() {
         val change = ChangeLanguage(prefs)
         assertFalse(change(Language.SYSTEM))
@@ -148,5 +184,26 @@ class UseCasesTest {
         assertFalse(change.fromUri("content://x")); assertEquals(Wallpaper.NONE, prefs.wallpaper)
         w.ok = true
         assertTrue(change.fromUri("content://x")); assertEquals(Wallpaper.CUSTOM, prefs.wallpaper)
+    }
+
+    @Test fun replaceStockLauncherDisablesAndRemembers() {
+        val prefs = FakePrefs(); val diag = FakeDiagnostics(); val sys = FakeSystem()
+        ReplaceStockLauncher(diag, sys, prefs)()
+        assertEquals(listOf("com.google.android.tvlauncher") to false, diag.lastLaunchers)
+        assertEquals(setOf("com.google.android.tvlauncher"), prefs.disabledLaunchers)
+    }
+
+    @Test fun replaceStockLauncherKeepsNothingOnFailure() {
+        val prefs = FakePrefs(); val diag = FakeDiagnostics().apply { launchersResult = false }
+        ReplaceStockLauncher(diag, FakeSystem(), prefs)()
+        assertTrue(prefs.disabledLaunchers.isEmpty())
+    }
+
+    @Test fun restoreStockLauncherEnablesAndClears() {
+        val prefs = FakePrefs().apply { disabledLaunchers = setOf("a.b") }; val diag = FakeDiagnostics()
+        assertTrue(RestoreStockLauncher(diag, prefs)())
+        assertEquals(listOf("a.b") to true, diag.lastLaunchers)
+        assertTrue(prefs.disabledLaunchers.isEmpty())
+        assertFalse(RestoreStockLauncher(diag, prefs)())
     }
 }

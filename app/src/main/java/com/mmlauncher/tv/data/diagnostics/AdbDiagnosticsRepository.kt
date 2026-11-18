@@ -62,6 +62,29 @@ class AdbDiagnosticsRepository(private val context: Context) : DiagnosticsReposi
         try { am.killBackgroundProcesses(packageName) } catch (_: Exception) {}
     }
 
+    override fun grantFileAccess(): Boolean =
+        LocalAdb.shell(context, "appops set --uid ${context.packageName} MANAGE_EXTERNAL_STORAGE allow") != null
+
+    /** Role holder survives reboots (Android 10+); older versions use the preferred home activity. */
+    override fun setDefaultHome(): Boolean {
+        val pkg = context.packageName
+        val role = LocalAdb.shell(context, "cmd role add-role-holder --user 0 android.app.role.HOME $pkg 0")
+        if (role != null && !role.contains("Error", ignoreCase = true) && !role.contains("not found", ignoreCase = true)) return true
+        return LocalAdb.shell(context, "cmd package set-home-activity $pkg/.presentation.home.MainActivity") != null
+    }
+
+    override fun setLaunchersEnabled(packages: List<String>, enabled: Boolean): Boolean {
+        if (packages.isEmpty()) return false
+        var all = true
+        for (pkg in packages) {
+            val cmd = if (enabled) "pm enable $pkg" else "pm disable-user --user 0 $pkg"
+            val out = LocalAdb.shell(context, cmd)
+            val ok = out != null && out.contains(if (enabled) "enabled" else "disabled", ignoreCase = true)
+            if (!ok) all = false
+        }
+        return all
+    }
+
     override fun grantWriteSecureSettings(): Boolean =
         LocalAdb.shell(context, "pm grant ${context.packageName} android.permission.WRITE_SECURE_SETTINGS") != null
 }

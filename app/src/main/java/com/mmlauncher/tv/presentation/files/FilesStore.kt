@@ -3,7 +3,9 @@ package com.mmlauncher.tv.presentation.files
 import com.mmlauncher.tv.R
 import com.mmlauncher.tv.core.MviStore
 import com.mmlauncher.tv.core.Scheduler
+import com.mmlauncher.tv.domain.model.AdbFailure
 import com.mmlauncher.tv.domain.usecase.*
+import com.mmlauncher.tv.presentation.common.Hints
 import com.mmlauncher.tv.presentation.common.msg
 import java.io.File
 
@@ -15,6 +17,7 @@ class FilesStore(
     private val isImage: IsImageFile,
     private val roots: FileRoots,
     private val changeWallpaper: ChangeWallpaper,
+    private val grantAccessViaAdb: GrantFileAccessViaAdb,
 ) : MviStore<FilesState, FilesIntent, FilesEffect>(FilesState(), scheduler) {
 
     private var startPath: String? = null
@@ -22,11 +25,23 @@ class FilesStore(
 
     override fun handle(intent: FilesIntent) {
         when (intent) {
-            is FilesIntent.Init -> { startPath = intent.startPath; if (hasAccess()) begin() else emit(FilesEffect.RequestAccess) }
-            FilesIntent.Recheck -> if (!started) {
-                if (hasAccess()) begin() else handle(FilesIntent.AccessDenied) // came back from the permission screen
+            is FilesIntent.Init -> {
+                startPath = intent.startPath
+                if (hasAccess()) begin() else { setState { copy(needsAccess = true) }; emit(FilesEffect.RequestAccess) }
             }
-            FilesIntent.AccessDenied -> { emit(FilesEffect.Toast(msg(R.string.perm_denied))); emit(FilesEffect.Finish) }
+            // Back from a permission screen: continue if granted, otherwise stay on the explanation.
+            FilesIntent.Recheck -> if (!started && hasAccess()) begin()
+            FilesIntent.AccessDenied -> { setState { copy(needsAccess = true) }; emit(FilesEffect.Toast(msg(R.string.perm_denied))) }
+            FilesIntent.GrantViaAdb -> {
+                emit(FilesEffect.Toast(msg(R.string.adb_working)))
+                network({ grantAccessViaAdb() }) { (granted, failure) ->
+                    when {
+                        granted -> begin()
+                        failure == AdbFailure.WAITING_FOR_APPROVAL -> emit(FilesEffect.Toast(msg(R.string.adb_denied)))
+                        else -> emit(FilesEffect.Toast(msg(R.string.adb_unavailable, Hints.ENABLE_TCPIP)))
+                    }
+                }
+            }
             is FilesIntent.Open -> open(intent.entry.path, intent.entry.isDirectory)
             is FilesIntent.LongPress ->
                 if (!intent.entry.isDirectory) emit(FilesEffect.ShowFileMenu(intent.entry, isImage(intent.entry.path)))
@@ -40,6 +55,7 @@ class FilesStore(
 
     private fun begin() {
         started = true
+        setState { copy(needsAccess = false) }
         val p = startPath
         if (p != null && File(p).isDirectory) show(p, null) else show(null, null)
     }

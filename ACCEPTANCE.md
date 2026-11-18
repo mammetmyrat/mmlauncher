@@ -36,6 +36,18 @@ check with SHA-256, first-run wizard, privacy policy, seller guide.
 - 40 JVM unit tests (use cases, stores, parsers) pass.
 - A shared single-thread executor let a slow ADB request block the file manager's listing; fixed (3-thread `io` pool plus a separate `network` thread).
 
+## Tools section and fixes from the first real TV (Android 13, vendor firmware)
+- Files: when "All files access" cannot be granted (no system screen on the TV), the screen now explains and offers
+  "Allow via local ADB" instead of closing silently.
+- Default home: wizard and Launcher settings can set the role through the system dialog or through local ADB
+  (`cmd role add-role-holder`), because "Always" in the home picker is forgotten after reboot on some firmwares.
+- Developer screen: always offers the system developer options and the stock Android TV About screen, plus tips for
+  firmwares without a "Build number" row. Not guaranteed on every firmware.
+- New Tools menu: Device info (Widevine level, codecs, display, HDR), Network & ADB (IPs, port 5555 status),
+  App manager (force stop, clear cache/data, disable, save APK, uninstall), Logs (system log via local ADB, own log without it,
+  level filter, save to file). 58 JVM unit tests pass. **None of these screens was verified on a device or emulator yet**
+  (the emulator hung during this work); check them on the TV. App-manager actions that need adbd depend on the local ADB step.
+
 ## Before the first public release
 1. Test on at least 3 real boxes (different chips, one with Android 7 or 8). Record the model,
    Android version and which buttons failed; add working intents to `settings_chains.json`.
